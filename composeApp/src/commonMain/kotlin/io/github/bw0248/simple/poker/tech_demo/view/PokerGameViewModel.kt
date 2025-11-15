@@ -10,6 +10,7 @@ import io.github.bw0248.spe.PotView
 import io.github.bw0248.spe.bigBlind
 import io.github.bw0248.spe.card.Card
 import io.github.bw0248.spe.config.GameConfig
+import io.github.bw0248.spe.game.CommandResult
 import io.github.bw0248.spe.game.Game
 import io.github.bw0248.spe.game.GameView
 import io.github.bw0248.spe.game.JoinCommand
@@ -17,6 +18,9 @@ import io.github.bw0248.spe.game.PlayerFoldedCommand
 import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
+import java.util.Timer
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class PokerGameViewModel() : ViewModel() {
     private var game: Game// = Game.initializeFromConfig(GameConfig.defaultNoLimitHoldem())
@@ -33,10 +37,8 @@ class PokerGameViewModel() : ViewModel() {
         _uiState.update(game.view())
     }
 
-    fun getActivePlayer(): Map.Entry<PlayerSeat, PlayerView> {
+    fun getActivePlayer(): Map.Entry<PlayerSeat, PlayerView>? {
         return _uiState.playerViews.entries.firstOrNull { it.value.playerStatus == PlayerStatus.NEXT_TO_ACT }
-            ?: throw IllegalStateException()
-
     }
 
     fun joinGame() {
@@ -46,9 +48,10 @@ class PokerGameViewModel() : ViewModel() {
     }
 
     fun fold(playerSeat: PlayerSeat) {
-        val res = game.processCommand(PlayerFoldedCommand(playerSeat))
-        game = res.updatedGame
-        _uiState.update(game.view())
+        val commandResult = game.processCommand(PlayerFoldedCommand(playerSeat))
+        game = commandResult.updatedGame
+        _uiState.update(commandResult)
+        //_uiState.update(game.view())
     }
 }
 
@@ -58,8 +61,32 @@ private class MutablePokerGameState : PokerGameState {
     override var potView: PotView by mutableStateOf(PotView(amount = BigBlind.of(0), BigBlind.of(0), emptyMap()))
     override var currentBet: BigBlind? by mutableStateOf(BigBlind.of(0))
 
+    private val scheduler = Executors.newSingleThreadScheduledExecutor()
+    private val transitionDelayMillis: Long = 500
+
+    fun update(commandResult: CommandResult) {
+        commandResult.recordedGameViewSnapshots.withIndex().forEach {
+            val delay = (it.index + 1) * transitionDelayMillis
+            scheduler.schedule(
+                { update(it.value) },
+                delay,
+                TimeUnit.MILLISECONDS
+            )
+        }
+        scheduler.schedule(
+            { update(commandResult.updatedGame.view()) },
+            (commandResult.recordedGameViewSnapshots.size + 1) * transitionDelayMillis,
+            TimeUnit.MILLISECONDS
+        )
+    }
+
     fun update(gameView: GameView) {
         Logger.info("PokerGameViewModel", "Updating GameState")
+        Logger.info("PokerGameViewModel", "Players: ${gameView.playerViews}")
+        Logger.info(
+            "PokerGameViewModel",
+            "Game: ${gameView.gameStatus}, ${gameView.communityCards}, ${gameView.pot}, ${gameView.currentBettingRoundIndex}, ${gameView.currentBet}"
+        )
         playerViews = gameView.playerViews
         communityCards = gameView.communityCards
         potView = gameView.pot

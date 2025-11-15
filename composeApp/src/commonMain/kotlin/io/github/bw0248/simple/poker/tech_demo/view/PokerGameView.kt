@@ -101,11 +101,6 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
 
 @Composable
 fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
-    val minBet = BigBlind.of(1)
-    val maxBet = 100_000_000f
-    val facingBet = viewModel.uiState.currentBet?.let { it != BigBlind.of(0) } ?: false
-    val activePlayer = viewModel.getActivePlayer()
-    val betSliderPosition = remember { mutableStateOf(minBet) }
     Row(modifier = modifier
         .fillMaxWidth()
         .padding(8.dp)
@@ -113,6 +108,11 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val activePlayer = viewModel.getActivePlayer() ?: return
+        val minBet = BigBlind.of(1)
+        val maxBet = 100_000_000f
+        val facingBet = viewModel.uiState.currentBet?.let { it != BigBlind.of(0) } ?: false
+        val betSliderPosition = remember { mutableStateOf(minBet) }
         Button(
             onClick = { viewModel.fold(activePlayer.key) },
             shape = RectangleShape,
