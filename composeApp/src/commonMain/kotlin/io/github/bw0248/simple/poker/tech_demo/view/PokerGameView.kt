@@ -17,12 +17,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults.elevation
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,11 +39,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.bw0248.spe.BigBlind
 import io.github.bw0248.spe.card.Card
 import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardSuit
@@ -48,6 +59,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import tech_demo.composeapp.generated.resources.Res
 import tech_demo.composeapp.generated.resources.ac_full
 import tech_demo.composeapp.generated.resources.cb_half
+import javax.swing.text.TableView
+import kotlin.math.round
 
 
 @Composable
@@ -82,12 +95,77 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
                 modifier = Modifier.weight(0.25f)
             )
         }
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.25f)
-            //.background(color = Color.Blue)
-        ) {}
+        ActionBar(viewModel = viewModel, modifier = Modifier.weight(0.25f))
     }
+}
+
+@Composable
+fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
+    val minBet = BigBlind.of(1)
+    val maxBet = 100_000_000f
+    val facingBet = viewModel.uiState.currentBet?.let { it != BigBlind.of(0) } ?: false
+    val activePlayer = viewModel.getActivePlayer()
+    val betSliderPosition = remember { mutableStateOf(minBet) }
+    Row(modifier = modifier
+        .fillMaxWidth()
+        .padding(8.dp)
+        .background(color = Color.Blue),
+        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(
+            onClick = { viewModel.fold(activePlayer.key) },
+            shape = RectangleShape,
+            modifier = Modifier.weight(0.22f)
+        ) {
+            Text(
+                text = "FOLD",
+                style = MaterialTheme.typography.displaySmall,
+                fontSize = 18.sp.nonScaledSp
+            )
+        }
+        Button(
+            onClick = {},
+            shape = RectangleShape,
+            modifier = Modifier.weight(0.22f)
+        ) {
+            AmountText(prefixText = if(facingBet) "CALL" else "CHECK", amount = viewModel.uiState.currentBet)
+        }
+        Button(
+            onClick = {},
+            shape = RectangleShape,
+            modifier = Modifier.weight(0.22f)
+        ) {
+            AmountText(prefixText = if(facingBet) "RAISE" else "BET", amount = betSliderPosition.value)
+        }
+        Slider(
+            value = betSliderPosition.value.amount.toFloat(),
+            onValueChange = { betSliderPosition.value = BigBlind.of(round(it * 100.0) / 100.0) },
+            valueRange = minBet.amount.toFloat()..maxBet,
+            modifier = Modifier.weight(0.33f)
+        )
+    }
+}
+
+@Composable
+fun AmountText(
+    modifier: Modifier = Modifier,
+    prefixText: String,
+    amount: BigBlind?,
+    fontSize: TextUnit = 18.sp,
+    color: Color = Color.White,
+) {
+    val amountText = amount?.format() ?: ""
+    Text(
+        modifier = modifier,
+        text = "$prefixText $amountText",
+        maxLines = 1,
+        softWrap = false,
+        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, fontSize),
+        style = MaterialTheme.typography.displaySmall,
+        //fontSize = fontSize.nonScaledSp,
+        color = color
+    )
 }
 
 @Composable
@@ -129,8 +207,28 @@ fun PlayerView(name: String, playerView: PlayerView?, modifier: Modifier = Modif
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(name, color = Color.White)
-                    Text("$1234.99", color = Color.White)
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = name,
+                        maxLines = 1,
+                        softWrap = false,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, 16.sp),
+                        //style = MaterialTheme.typography.displaySmall.copy(fontSize = TextUnit.Unspecified),
+                        //fontSize = 16.nonScaledSp,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "$222.444.99",
+                        maxLines = 1,
+                        softWrap = false,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, 16.sp),
+                        //style = MaterialTheme.typography.displaySmall,
+                        //fontSize = 16.nonScaledSp,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
@@ -159,8 +257,7 @@ fun TableView(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(32.dp)
-            ,
+                .padding(32.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -227,6 +324,10 @@ fun HoleCardView(card: Card, modifier: Modifier = Modifier) {
         )
     }
 
+}
+
+fun BigBlind?.format(): String {
+    return String.format(java.util.Locale.US, "$%,.2f", this?.amount ?: BigBlind.of(0).amount)
 }
 
 val TextUnit.nonScaledSp
