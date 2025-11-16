@@ -14,13 +14,16 @@ import io.github.bw0248.spe.game.CommandResult
 import io.github.bw0248.spe.game.Game
 import io.github.bw0248.spe.game.GameView
 import io.github.bw0248.spe.game.JoinCommand
+import io.github.bw0248.spe.game.PlayerBet
 import io.github.bw0248.spe.game.PlayerBetCommand
 import io.github.bw0248.spe.game.PlayerCalledCommand
 import io.github.bw0248.spe.game.PlayerCheckedCommand
 import io.github.bw0248.spe.game.PlayerCommand
 import io.github.bw0248.spe.game.PlayerFoldedCommand
 import io.github.bw0248.spe.game.PlayerJoined
+import io.github.bw0248.spe.game.PlayerPostedBigBlind
 import io.github.bw0248.spe.game.PlayerRaiseCommand
+import io.github.bw0248.spe.game.PlayerRaised
 import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
@@ -29,9 +32,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class PokerGameViewModel() : ViewModel() {
-    private var game: Game// = Game.initializeFromConfig(GameConfig.defaultNoLimitHoldem())
-    //private val _uiState = mutableStateOf(PokerGameState.init())
-    //var pokerGameState by mutableStateOf(PokerGameState(emptyList()))
+    private var game: Game
     private val _uiState = MutablePokerGameState()
     val uiState: PokerGameState = _uiState
     init {
@@ -54,6 +55,39 @@ class PokerGameViewModel() : ViewModel() {
     fun bet(playerSeat: PlayerSeat, betAmount: BigBlind) = updateWithCommand(PlayerBetCommand(betAmount, playerSeat))
     fun raise(playerSeat: PlayerSeat, amount: BigBlind) {
         updateWithCommand(PlayerRaiseCommand(amount, playerSeat))
+    }
+
+    fun calculateMinRaise(): BigBlind {
+        if (game.view().currentBet == null || game.view().currentBet == BigBlind.ZERO) {
+            return game.view().config.deadMoneyConfig.bigBlindAmount
+        }
+        return game.view().recordedHands.last().recordedBettingRounds.last().recordedEvents
+            .findLast { it is PlayerRaised || it is PlayerBet || it is PlayerPostedBigBlind }
+            .let {
+                when (it) {
+                    is PlayerRaised -> it.betIncrementRelativeToPreviousBet.plus(game.view().currentBet)
+                    is PlayerBet -> it.amount.multiply(2)
+                    is PlayerPostedBigBlind -> game.view().config.deadMoneyConfig.bigBlindAmount.multiply(2)
+                    else -> throw IllegalStateException("current bet is not null but no bet or raise event recorded")
+                }
+            }
+    }
+
+    fun calculatePotRaise(factor: Double): BigBlind {
+        val currentBet = game.view().currentBet ?: BigBlind.ZERO
+        return BigBlind.of(factor)
+            .multiply(currentBet.plus(game.view().pot.amountIncludingPlayerBets))
+            .plus(currentBet)
+    }
+
+    fun allowedToCheck(playerSeat: PlayerSeat): Boolean {
+        return game.view().currentBet == null ||
+            game.view().currentBet == BigBlind.ZERO ||
+            game.view().currentBet == game.view().playerViews[playerSeat]?.currentBet
+    }
+
+    fun allowedToRaise(playerSeat: PlayerSeat): Boolean {
+        return game.view().currentBet != null && game.view().currentBet != BigBlind.ZERO
     }
 
     private fun updateWithCommand(command: PlayerCommand) {

@@ -1,6 +1,7 @@
 package io.github.bw0248.simple.poker.tech_demo.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.bw0248.spe.BigBlind
+import io.github.bw0248.spe.bigBlind
 import kotlin.math.round
 
 val BUTTON_COLOR = Color(0xFF800000)
@@ -35,20 +37,22 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         val activePlayer = viewModel.getActivePlayer() ?: return
-        val minBet = BigBlind.of(1)
+        val minBet = viewModel.calculateMinRaise()
         val maxBet = 100f
-        val facingBet = viewModel.uiState.currentBet?.let { it != BigBlind.of(0) } ?: false
+        //val facingBet = viewModel.uiState.currentBet?.let { it != BigBlind.of(0) } ?: false
+        val allowedToCheck = viewModel.allowedToCheck(activePlayer.key)
+        val allowedToCRaise = viewModel.allowedToRaise(activePlayer.key)
         val betSliderPosition = remember { mutableStateOf(minBet) }
         ActionButton(
             modifier = Modifier.weight(0.22f),
             onClick = { viewModel.fold(activePlayer.key) },
             prefixText = "FOLD",
         )
-        val (callText, callAmount) = if (facingBet) "CALL" to viewModel.uiState.currentBet else "CHECK" to null
+        val (callText, callAmount) = if (allowedToCheck) "CHECK" to null else "CALL" to viewModel.uiState.currentBet
         ActionButton(
             modifier = Modifier.weight(0.22f),
             onClick = {
-                if (facingBet) viewModel.call(activePlayer.key) else viewModel.check(activePlayer.key)
+                if (allowedToCheck) viewModel.check(activePlayer.key) else viewModel.call(activePlayer.key)
             },
             prefixText = callText,
             amount = callAmount
@@ -56,29 +60,28 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
         ActionButton(
             modifier = Modifier.weight(0.22f),
             onClick = {
-                if (facingBet) {
+                if (allowedToCRaise) {
                     viewModel.raise(activePlayer.key, betSliderPosition.value)
                 } else {
                     viewModel.bet(activePlayer.key, betSliderPosition.value)
                 }
             },
-            prefixText = if (facingBet) "RAISE" else "BET",
+            prefixText = if (allowedToCRaise) "RAISE" else "BET",
             amount = betSliderPosition.value
         )
         Column(
             modifier = Modifier
                 .weight(0.33f),
-            // .border(2.dp, Color.Red)
         ) {
             Row(
                 modifier = Modifier
                     .weight(0.5f)
                     .padding(4.dp)
-                //.border(2.dp, Color.White)
             ) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculateMinRaise() })
                         .background(color = BUTTON_COLOR),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -88,6 +91,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.333) })
                         .background(color = BUTTON_COLOR),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -97,6 +101,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.5) })
                         .background(color = BUTTON_COLOR),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -106,6 +111,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.75) })
                         .background(color = BUTTON_COLOR),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -115,6 +121,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(1.0) })
                         .background(color = BUTTON_COLOR),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -125,12 +132,21 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
             Slider(
                 modifier = Modifier.weight(0.5f),
                 value = betSliderPosition.value.amount.toFloat(),
-                onValueChange = { betSliderPosition.value = BigBlind.of(round(it * 100.0) / 100.0) },
+                //onValueChange = { betSliderPosition.value = BigBlind.of(round(it * 100.0) / 100.0) },
+                onValueChange = { betSliderPosition.value =  it.bigBlind().round() },
                 valueRange = minBet.amount.toFloat()..maxBet,
                 colors = SliderDefaults.colors(thumbColor = BUTTON_COLOR, activeTrackColor = Color.Green)
             )
         }
     }
+}
+
+private fun Float.bigBlind(): BigBlind {
+    return this.toDouble().bigBlind()
+}
+
+private fun BigBlind.round(): BigBlind {
+    return this.multiply(100).divide(100.bigBlind())
 }
 
 @Composable

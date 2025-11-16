@@ -232,5 +232,4 @@ fun HoleCardView(card: Card, modifier: Modifier = Modifier) {
             contentScale = ContentScale.FillBounds
         )
     }
-
 }
