@@ -14,7 +14,13 @@ import io.github.bw0248.spe.game.CommandResult
 import io.github.bw0248.spe.game.Game
 import io.github.bw0248.spe.game.GameView
 import io.github.bw0248.spe.game.JoinCommand
+import io.github.bw0248.spe.game.PlayerBetCommand
+import io.github.bw0248.spe.game.PlayerCalledCommand
+import io.github.bw0248.spe.game.PlayerCheckedCommand
+import io.github.bw0248.spe.game.PlayerCommand
 import io.github.bw0248.spe.game.PlayerFoldedCommand
+import io.github.bw0248.spe.game.PlayerJoined
+import io.github.bw0248.spe.game.PlayerRaiseCommand
 import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
@@ -41,17 +47,20 @@ class PokerGameViewModel() : ViewModel() {
         return _uiState.playerViews.entries.firstOrNull { it.value.playerStatus == PlayerStatus.NEXT_TO_ACT }
     }
 
-    fun joinGame() {
-        val res = game.processCommand(JoinCommand(100.bigBlind(), PlayerSeat.ONE))
-        game = res.updatedGame
-        _uiState.update(game.view())
+    fun joinGame(playerSeat: PlayerSeat, buyIn: BigBlind) = updateWithCommand(JoinCommand(buyIn, playerSeat))
+    fun fold(playerSeat: PlayerSeat) = updateWithCommand(PlayerFoldedCommand(playerSeat))
+    fun call(playerSeat: PlayerSeat) = updateWithCommand(PlayerCalledCommand(playerSeat))
+    fun check(playerSeat: PlayerSeat) = updateWithCommand(PlayerCheckedCommand(playerSeat))
+    fun bet(playerSeat: PlayerSeat, betAmount: BigBlind) = updateWithCommand(PlayerBetCommand(betAmount, playerSeat))
+    fun raise(playerSeat: PlayerSeat, amount: BigBlind) {
+        updateWithCommand(PlayerRaiseCommand(amount, playerSeat))
     }
 
-    fun fold(playerSeat: PlayerSeat) {
-        val commandResult = game.processCommand(PlayerFoldedCommand(playerSeat))
+    private fun updateWithCommand(command: PlayerCommand) {
+        Logger.info("PokerGameViewModel", "Sending command $command")
+        val commandResult = game.processCommand(command)
         game = commandResult.updatedGame
         _uiState.update(commandResult)
-        //_uiState.update(game.view())
     }
 }
 
@@ -90,8 +99,8 @@ private class MutablePokerGameState : PokerGameState {
         playerViews = gameView.playerViews
         communityCards = gameView.communityCards
         potView = gameView.pot
-        //currentBet = gameView.currentBet
-        currentBet = BigBlind.of(694242.99)
+        currentBet = gameView.currentBet
+        //currentBet = BigBlind.of(694242.99)
     }
 }
 
