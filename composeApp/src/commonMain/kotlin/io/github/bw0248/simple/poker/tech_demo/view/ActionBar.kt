@@ -1,6 +1,7 @@
 package io.github.bw0248.simple.poker.tech_demo.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,9 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.bw0248.spe.BigBlind
 import io.github.bw0248.spe.bigBlind
-import kotlin.math.round
 
 val BUTTON_COLOR = Color(0xFF800000)
 
@@ -31,15 +32,17 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            //.background(color = Color.Blue)
+            //.border(2.dp, color = Color.Red)
             .padding(8.dp),
-        //.background(color = Color.Blue),
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val activePlayer = viewModel.getActivePlayer() ?: return
         val minBet = viewModel.calculateMinRaise()
-        val maxBet = 100f
-        //val facingBet = viewModel.uiState.currentBet?.let { it != BigBlind.of(0) } ?: false
+            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+        val maxBet = activePlayer.value.currentStack.plus(activePlayer.value.currentBet)
+            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
         val allowedToCheck = viewModel.allowedToCheck(activePlayer.key)
         val allowedToCRaise = viewModel.allowedToRaise(activePlayer.key)
         val betSliderPosition = remember { mutableStateOf(minBet) }
@@ -48,7 +51,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
             onClick = { viewModel.fold(activePlayer.key) },
             prefixText = "FOLD",
         )
-        val (callText, callAmount) = if (allowedToCheck) "CHECK" to null else "CALL" to viewModel.uiState.currentBet
+        val (callText, callAmount) = if (allowedToCheck) "CHECK" to null else "CALL" to viewModel.uiState.currentBet?.minOf(activePlayer.value.currentStack)
         ActionButton(
             modifier = Modifier.weight(0.22f),
             onClick = {
@@ -71,18 +74,25 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
         )
         Column(
             modifier = Modifier
-                .weight(0.33f),
+                .weight(0.33f)
+            //.border(2.dp, color = Color.Yellow),
         ) {
             Row(
                 modifier = Modifier
-                    .weight(0.5f)
-                    .padding(4.dp)
+                    .weight(0.5f),
+                    //.border(2.dp, color = Color.Magenta)
+                    //.padding(4.dp),
+                verticalAlignment = Alignment.Bottom,
+                //verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculateMinRaise() })
-                        .background(color = BUTTON_COLOR),
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculateMinRaise()
+                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
+                        .background(color = BUTTON_COLOR)
+                        .border(1.dp, color = Color.Black),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -91,8 +101,10 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.333) })
-                        .background(color = BUTTON_COLOR),
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.333)
+                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
+                        .background(color = BUTTON_COLOR)
+                        .border(1.dp, color = Color.Black),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -101,8 +113,10 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.5) })
-                        .background(color = BUTTON_COLOR),
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.5)
+                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
+                        .background(color = BUTTON_COLOR)
+                        .border(1.dp, color = Color.Black),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -111,8 +125,10 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.75) })
-                        .background(color = BUTTON_COLOR),
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.75)
+                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
+                        .background(color = BUTTON_COLOR)
+                        .border(1.dp, color = Color.Black),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -121,8 +137,10 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(1.0) })
-                        .background(color = BUTTON_COLOR),
+                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(1.0)
+                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
+                        .background(color = BUTTON_COLOR)
+                        .border(1.dp, color = Color.Black),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -131,11 +149,11 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
             }
             Slider(
                 modifier = Modifier.weight(0.5f),
+                //.border(2.dp, color = Color.Green),
                 value = betSliderPosition.value.amount.toFloat(),
-                //onValueChange = { betSliderPosition.value = BigBlind.of(round(it * 100.0) / 100.0) },
                 onValueChange = { betSliderPosition.value =  it.bigBlind().round() },
-                valueRange = minBet.amount.toFloat()..maxBet,
-                colors = SliderDefaults.colors(thumbColor = BUTTON_COLOR, activeTrackColor = Color.Green)
+                valueRange = minBet.amount.toFloat()..maxBet.amount.toFloat(),
+                colors = SliderDefaults.colors(thumbColor = BUTTON_COLOR, activeTrackColor = BUTTON_COLOR)
             )
         }
     }
@@ -151,11 +169,18 @@ private fun BigBlind.round(): BigBlind {
 
 @Composable
 fun ActionButton(modifier: Modifier = Modifier, onClick: () -> Unit, prefixText: String, amount: BigBlind? = null) {
-    Button(
-        modifier = modifier,
-        onClick = onClick,
-        shape = RectangleShape,
-        colors = ButtonDefaults.buttonColors(containerColor = BUTTON_COLOR)
+    Column(
+        modifier = modifier//Modifier.weight(1f)
+            .clickable(onClick = onClick)
+            //.border(1.dp, color = Color.Black)
+            .background(color = BUTTON_COLOR),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    //Button(
+    //    modifier = modifier,
+    //    onClick = onClick,
+    //    shape = RectangleShape,
+    //    colors = ButtonDefaults.buttonColors(containerColor = BUTTON_COLOR)
     ) {
         AmountText(prefixText = prefixText, amount = amount)
     }

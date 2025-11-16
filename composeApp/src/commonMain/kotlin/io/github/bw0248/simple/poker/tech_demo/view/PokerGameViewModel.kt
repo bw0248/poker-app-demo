@@ -20,14 +20,12 @@ import io.github.bw0248.spe.game.PlayerCalledCommand
 import io.github.bw0248.spe.game.PlayerCheckedCommand
 import io.github.bw0248.spe.game.PlayerCommand
 import io.github.bw0248.spe.game.PlayerFoldedCommand
-import io.github.bw0248.spe.game.PlayerJoined
 import io.github.bw0248.spe.game.PlayerPostedBigBlind
 import io.github.bw0248.spe.game.PlayerRaiseCommand
 import io.github.bw0248.spe.game.PlayerRaised
 import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
-import java.util.Timer
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -58,19 +56,20 @@ class PokerGameViewModel() : ViewModel() {
     }
 
     fun calculateMinRaise(): BigBlind {
-        if (game.view().currentBet == null || game.view().currentBet == BigBlind.ZERO) {
-            return game.view().config.deadMoneyConfig.bigBlindAmount
-        }
-        return game.view().recordedHands.last().recordedBettingRounds.last().recordedEvents
-            .findLast { it is PlayerRaised || it is PlayerBet || it is PlayerPostedBigBlind }
-            .let {
-                when (it) {
-                    is PlayerRaised -> it.betIncrementRelativeToPreviousBet.plus(game.view().currentBet)
-                    is PlayerBet -> it.amount.multiply(2)
-                    is PlayerPostedBigBlind -> game.view().config.deadMoneyConfig.bigBlindAmount.multiply(2)
-                    else -> throw IllegalStateException("current bet is not null but no bet or raise event recorded")
+        return if (game.view().currentBet == null || game.view().currentBet == BigBlind.ZERO) {
+            game.view().config.deadMoneyConfig.bigBlindAmount
+        } else {
+            game.view().recordedHands.last().recordedBettingRounds.last().recordedEvents
+                .findLast { it is PlayerRaised || it is PlayerBet || it is PlayerPostedBigBlind }
+                .let {
+                    when (it) {
+                        is PlayerRaised -> it.betIncrementRelativeToPreviousBet.plus(game.view().currentBet)
+                        is PlayerBet -> it.amount.multiply(2)
+                        is PlayerPostedBigBlind -> game.view().config.deadMoneyConfig.bigBlindAmount.multiply(2)
+                        else -> throw IllegalStateException("current bet is not null but no bet or raise event recorded")
+                    }
                 }
-            }
+        }
     }
 
     fun calculatePotRaise(factor: Double): BigBlind {

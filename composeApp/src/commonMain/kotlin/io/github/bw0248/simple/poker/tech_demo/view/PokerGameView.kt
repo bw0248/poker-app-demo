@@ -32,6 +32,7 @@ import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardSuit
 import io.github.bw0248.spe.card.CardValue
 import io.github.bw0248.spe.player.PlayerSeat
+import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -46,13 +47,13 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.25f)
+                .weight(0.2f)
                 //.background(color = Color.Blue)
         ) {}
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.5f),
+                .weight(0.6f),
             //horizontalArrangement = Arrangement.Center
                 //.background(color = Color.Green)
         ) {
@@ -71,7 +72,7 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
                 modifier = Modifier.weight(0.25f)
             )
         }
-        ActionBar(viewModel = viewModel, modifier = Modifier.weight(0.25f))
+        ActionBar(viewModel = viewModel, modifier = Modifier.weight(0.2f))
     }
 }
 
@@ -80,24 +81,24 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
 fun PlayerView(name: String, playerView: PlayerView?, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .background(color = Color.Red),
+            //.background(color = Color.Red)
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         playerView?.let {
             Column(
                 modifier = Modifier
+                    //.background(color = Color.White)
                     .fillMaxWidth(0.75f)
-                    .fillMaxHeight(0.75f)
-                    .background(color = Color.White),
+                    .fillMaxHeight(0.75f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Row(
                     modifier = Modifier
                         .weight(0.6f)
-                        .fillMaxWidth(0.8f)
-                        .background(color = Color.Green),
+                        //.background(color = Color.Green)
+                        .fillMaxWidth(0.8f),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -105,21 +106,22 @@ fun PlayerView(name: String, playerView: PlayerView?, modifier: Modifier = Modif
                         HoleCardView(card, modifier = Modifier.weight(1f))
                     }
                 }
+                val borderWidth = if (playerView.playerStatus == PlayerStatus.NEXT_TO_ACT) 4.dp else 0.dp
                 Column(
                     modifier = Modifier
                         .weight(0.4f)
                         .fillMaxWidth()
                         .background(color = Color.Black)
-                        .border(width = 2.dp, color = Color.Red),
+                        .border(width = borderWidth, color = Color.Red, shape = RoundedCornerShape(16.dp)),
                     verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
                         text = name,
                         maxLines = 1,
                         softWrap = false,
-                        autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, 16.sp),
+                        autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, 32.sp),
                         //style = MaterialTheme.typography.displaySmall.copy(fontSize = TextUnit.Unspecified),
                         //fontSize = 16.nonScaledSp,
                         color = Color.White,
@@ -131,7 +133,7 @@ fun PlayerView(name: String, playerView: PlayerView?, modifier: Modifier = Modif
                         text = playerView.currentStack.format(),
                         maxLines = 1,
                         softWrap = false,
-                        autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, 16.sp),
+                        autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, 32.sp),
                         //style = MaterialTheme.typography.displaySmall,
                         //fontSize = 16.nonScaledSp,
                         color = Color.White,
