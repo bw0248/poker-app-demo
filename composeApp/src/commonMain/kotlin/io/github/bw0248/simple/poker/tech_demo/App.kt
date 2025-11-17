@@ -19,7 +19,8 @@ fun App() {
     MaterialTheme {
         Column(
             modifier = Modifier
-                .background(Color.Black)
+                //.background(Color.Black)
+                .background(color = Color(0xFF1A1A1A))
                 .safeContentPadding()
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,

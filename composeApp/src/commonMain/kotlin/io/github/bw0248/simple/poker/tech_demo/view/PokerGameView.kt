@@ -1,9 +1,9 @@
 package io.github.bw0248.simple.poker.tech_demo.view
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -13,32 +13,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.bw0248.spe.card.Card
-import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardSuit
 import io.github.bw0248.spe.card.CardValue
 import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import tech_demo.composeapp.generated.resources.Res
-import tech_demo.composeapp.generated.resources.ac_full
-import tech_demo.composeapp.generated.resources.cb_half
 
 @Composable
 @Preview
@@ -151,7 +142,10 @@ fun TableView(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF1B5E20)),
+            .background(color = Color(0xFF1B5E20), shape = RoundedCornerShape(64.dp))
+            .border(16.dp, color = Color(0xFF2A2A2A), shape = RoundedCornerShape(64.dp))
+            //.border(2.dp, color = Color(0xFF1B5E20), RoundedCornerShape(32.dp))
+        ,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -173,65 +167,8 @@ fun TableView(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             (0..4).map {
-                BoardCardView(
-                    Card(CardSuit.DIAMONDS, CardValue.ACE),
-                    modifier = Modifier.weight(1f)
-                )
-                //Box(
-                //    modifier = Modifier
-                //        .weight(1f)
-                //        .aspectRatio(0.666f)
-                //        .border(2.dp, color = Color.Green)
-                //) {}
+                BoardCardView(viewModel.uiState.communityCards.getOrNull(it), modifier.weight(1f))
             }
         }
-    }
-}
-
-@Composable
-fun BoardCardView(card: Card, modifier: Modifier = Modifier) {
-    val value = card.cardValue.name.lowercase().first()
-    val suit = card.cardSuit.name.lowercase().first()
-    val resourceName = "${suit}_${value}_full.png"
-
-    Card(
-        modifier = modifier.aspectRatio(0.666f),
-        shape = MaterialTheme.shapes.small,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Image(
-            painter = painterResource(Res.drawable.ac_full),
-            contentDescription = "Playing Card",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
-    }
-}
-
-@Composable
-fun HoleCardView(card: Card, modifier: Modifier = Modifier) {
-    val value = card.cardValue.name.lowercase().first()
-    val suit = card.cardSuit.name.lowercase().first()
-    val state = card.cardState
-    val resourceName = if (state == CardState.HIDDEN) {
-        "cb_half.png"
-    } else {
-        "${suit}_${value}_half.png"
-    }
-
-    Card(
-        modifier = modifier
-            .aspectRatio(1.33f),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RectangleShape,
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Image(
-            painter = painterResource(Res.drawable.cb_half),
-            contentDescription = "Playing Card",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
     }
 }
