@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -139,35 +140,37 @@ fun PlayerView(name: String, playerView: PlayerView?, modifier: Modifier = Modif
 @Composable
 @Preview
 fun TableView(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
-    Column(
+    androidx.compose.material3.Card(
         modifier = modifier
-            .fillMaxWidth()
-            .background(color = Color(0xFF1B5E20), shape = RoundedCornerShape(64.dp))
-            .border(16.dp, color = Color(0xFF2A2A2A), shape = RoundedCornerShape(64.dp))
-            //.border(2.dp, color = Color(0xFF1B5E20), RoundedCornerShape(32.dp))
-        ,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(300.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1B5E20)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
     ) {
-        Text(
-            modifier = Modifier
-                .padding(4.dp)
-                .background(color = Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            //text = "Pot: $123,456.99",
-            text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.format()}",
-            color = Color.White,
-            style = MaterialTheme.typography.displaySmall,
-            fontSize = 20.sp.nonScaledSp
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(32.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            (0..4).map {
-                BoardCardView(viewModel.uiState.communityCards.getOrNull(it), modifier.weight(1f))
+            Text(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .background(color = Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                //text = "Pot: $123,456.99",
+                text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.format()}",
+                color = Color.White,
+                style = MaterialTheme.typography.displaySmall,
+                fontSize = 20.sp.nonScaledSp
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(32.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                (0..4).map {
+                    BoardCardView(viewModel.uiState.communityCards.getOrNull(it), modifier.weight(1f))
+                }
             }
         }
     }

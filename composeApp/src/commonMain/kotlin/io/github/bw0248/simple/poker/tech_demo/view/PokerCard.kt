@@ -1,7 +1,6 @@
 package io.github.bw0248.simple.poker.tech_demo.view
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +13,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import io.github.bw0248.spe.card.Card
-import io.github.bw0248.spe.card.CardState
+import io.github.bw0248.spe.card.CardState.FOLDED
+import io.github.bw0248.spe.card.CardState.HIDDEN
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import tech_demo.composeapp.generated.resources.Res
@@ -23,15 +23,20 @@ import tech_demo.composeapp.generated.resources.allDrawableResources
 
 @Composable
 fun HoleCardView(card: Card, modifier: Modifier = Modifier) {
+    val (aspectRatio, resource) = if (card.cardState in setOf(HIDDEN, FOLDED)) {
+        1.33f to resolveHalfCardBack()
+    } else {
+        0.66f to resolveFullCard(card)
+    }
     androidx.compose.material3.Card(
         modifier = modifier
-            .aspectRatio(1.33f),
+            .aspectRatio(aspectRatio),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RectangleShape,
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Image(
-            painter = painterResource(resolveHoleCardResource(card, card.cardState == CardState.HIDDEN)),
+            painter = painterResource(resource),
             contentDescription = "Playing Card",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
@@ -41,35 +46,32 @@ fun HoleCardView(card: Card, modifier: Modifier = Modifier) {
 
 @Composable
 fun BoardCardView(card: Card?, modifier: Modifier = Modifier) {
-    androidx.compose.material3.Card(
-        modifier = modifier.aspectRatio(0.666f),
-        shape = MaterialTheme.shapes.small,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        card?.let {
+    card?.let {
+        androidx.compose.material3.Card(
+            modifier = modifier.aspectRatio(0.666f),
+            shape = MaterialTheme.shapes.small,
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
             Image(
-                painter = painterResource(resolveBoardCardResource(card)),
+                painter = painterResource(resolveFullCard(card)),
                 contentDescription = "Playing Card",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds
             )
-        } ?: Box(
-            modifier = Modifier
-                .weight(1f)
-                .aspectRatio(0.666f)
-                .background(color = Color.Red)
-            //.border(2.dp, color = Color.Green)
-        ) {}
-    }
+        }
+    } ?: Box(
+        modifier = modifier
+            .aspectRatio(0.666f)
+        //.background(color = Color.Red)
+    ) {}
 }
 
-private fun resolveHoleCardResource(card: Card, isHidden: Boolean): DrawableResource {
-    val path = if (isHidden) "cb_half" else "${cardToPath(card)}_half"
-    return loadResource(path)
+private fun resolveHalfCardBack(): DrawableResource {
+    return loadResource("cb_half")
 }
 
-private fun resolveBoardCardResource(card: Card): DrawableResource {
+private fun resolveFullCard(card: Card): DrawableResource {
     return loadResource(cardToPath(card))
 }
 

@@ -112,7 +112,7 @@ private class MutablePokerGameState : PokerGameState {
         commandResult.recordedGameViewSnapshots.withIndex().forEach {
 
             val delay = if (it.value.gameStatus == GameStatus.AFTER_HAND) {
-                2_000
+                1_000
             } else {
                 transitionDelayMillis
             }
