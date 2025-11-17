@@ -12,6 +12,7 @@ import io.github.bw0248.spe.card.Card
 import io.github.bw0248.spe.config.GameConfig
 import io.github.bw0248.spe.game.CommandResult
 import io.github.bw0248.spe.game.Game
+import io.github.bw0248.spe.game.GameStatus
 import io.github.bw0248.spe.game.GameView
 import io.github.bw0248.spe.game.JoinCommand
 import io.github.bw0248.spe.game.PlayerBet
@@ -90,7 +91,7 @@ class PokerGameViewModel() : ViewModel() {
     }
 
     private fun updateWithCommand(command: PlayerCommand) {
-        Logger.info("PokerGameViewModel", "Sending command $command")
+        Logger.info("PokerGameViewModel", "Sending command $command for player ${command.playerSeat}")
         val commandResult = game.processCommand(command)
         game = commandResult.updatedGame
         _uiState.update(commandResult)
@@ -107,17 +108,25 @@ private class MutablePokerGameState : PokerGameState {
     private val transitionDelayMillis: Long = 500
 
     fun update(commandResult: CommandResult) {
+        var totalDelay = 0L
         commandResult.recordedGameViewSnapshots.withIndex().forEach {
-            val delay = (it.index + 1) * transitionDelayMillis
-            scheduler.schedule(
+
+            val delay = if (it.value.gameStatus == GameStatus.AFTER_HAND) {
+                2_000
+            } else {
+                transitionDelayMillis
+            }
+            totalDelay += delay
+            Logger.info("PokerGameViewModel", "Scheduling ${it.value.gameStatus} game state with delay of ${totalDelay}")
+                scheduler.schedule(
                 { update(it.value) },
-                delay,
+                totalDelay,
                 TimeUnit.MILLISECONDS
             )
         }
         scheduler.schedule(
             { update(commandResult.updatedGame.view()) },
-            (commandResult.recordedGameViewSnapshots.size + 1) * transitionDelayMillis,
+            totalDelay + transitionDelayMillis,
             TimeUnit.MILLISECONDS
         )
     }

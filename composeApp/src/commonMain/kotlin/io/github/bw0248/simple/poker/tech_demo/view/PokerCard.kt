@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import io.github.bw0248.simple.poker.tech_demo.Logger
 import io.github.bw0248.spe.card.Card
 import io.github.bw0248.spe.card.CardState
 import org.jetbrains.compose.resources.DrawableResource
@@ -75,7 +74,6 @@ private fun resolveBoardCardResource(card: Card): DrawableResource {
 }
 
 private fun loadResource(path: String): DrawableResource {
-    Logger.info("PokerCard", "${Res.allDrawableResources.keys}")
     return Res.allDrawableResources[path]
         ?: throw IllegalStateException("Not able to local Card at path $path in resources")
 }
