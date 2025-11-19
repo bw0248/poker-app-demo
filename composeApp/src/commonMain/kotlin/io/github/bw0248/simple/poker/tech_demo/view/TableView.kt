@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,17 +23,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.bw0248.spe.card.Card
+import io.github.bw0248.spe.card.CardState
+import io.github.bw0248.spe.card.CardSuit
+import io.github.bw0248.spe.card.CardValue
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun TableView(viewModel: PokerGameViewModel, boxWithConstraintsScope: BoxWithConstraintsScope, modifier: Modifier = Modifier.Companion) {
+fun TableView(
+    viewModel: PokerGameViewModel,
+    boxWithConstraintsScope: BoxWithConstraintsScope,
+    modifier: Modifier = Modifier
+) {
     val tableDimensions = TableDimensions.fromParentContainerDimensions(
         width = boxWithConstraintsScope.maxWidth,
         height = boxWithConstraintsScope.maxHeight
     )
 
-    Card(
+    androidx.compose.material3.Card(
         modifier = modifier
             .fillMaxWidth(tableDimensions.relativeTableWidth)
             .fillMaxHeight(tableDimensions.relativeTableHeight)
@@ -46,44 +53,44 @@ fun TableView(viewModel: PokerGameViewModel, boxWithConstraintsScope: BoxWithCon
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1B5E20)),
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
     ) {
-        Box() {
+        Box {
             Row(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(tableDimensions.bettingLinePadding)
                     //.fillMaxSize(0.9f)
                     //.align(Alignment.CenterHorizontally)
                     .border(
                         width = tableDimensions.bettingLineThickness,
-                        color = Color.Companion.White,
+                        color = Color.White,
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(tableDimensions.cornerRadius)
                     ),
             ) {}
             Column(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize(),
-                horizontalAlignment = Alignment.Companion.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .background(
-                            color = Color.Companion.Black.copy(alpha = 0.5f),
+                            color = Color.Black.copy(alpha = 0.5f),
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                         )
                         //.border(2.dp, color = Color.Red)
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                     text = "Pot: $123,456.99",
                     //text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.format()}",
-                    autoSize = TextAutoSize.Companion.StepBased(
+                    autoSize = TextAutoSize.StepBased(
                         minFontSize = 6.sp,
                         maxFontSize = tableDimensions.potMaxFontSize.value.toInt().sp
                     ),
-                    color = Color.Companion.White,
+                    color = Color.White,
                     style = MaterialTheme.typography.displaySmall,
                     fontSize = 20.sp.nonScaledSp
                 )
                 Row(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .weight(0.8f)
                         .padding(
                             start = tableDimensions.boardCardsHorizontalPadding,
