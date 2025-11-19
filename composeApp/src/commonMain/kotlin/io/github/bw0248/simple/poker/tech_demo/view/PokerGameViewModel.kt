@@ -36,9 +36,17 @@ class PokerGameViewModel() : ViewModel() {
     val uiState: PokerGameState = _uiState
     init {
        game = Game.initializeFromConfig(GameConfig.defaultNoLimitHoldem())
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.ONE))
+           .updatedGame
            .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.TWO))
            .updatedGame
-           .processCommand(JoinCommand(100.bigBlind(), PlayerSeat.ONE))
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.THREE))
+           .updatedGame
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FOUR))
+           .updatedGame
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FIVE))
+           .updatedGame
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.SIX))
            .updatedGame
         _uiState.update(game.view())
     }

@@ -6,10 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
@@ -18,10 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.bw0248.spe.BigBlind
 import io.github.bw0248.spe.bigBlind
 
@@ -31,10 +26,12 @@ val BUTTON_COLOR = Color(0xFF800000)
 fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxSize()
+            //.fillMaxWidth()
             //.background(color = Color.Blue)
             //.border(2.dp, color = Color.Red)
-            .padding(8.dp),
+            //.padding(8.dp),
+                ,
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -79,7 +76,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
         ) {
             Row(
                 modifier = Modifier
-                    .weight(0.5f),
+                    .weight(1f),
                     //.border(2.dp, color = Color.Magenta)
                     //.padding(4.dp),
                 verticalAlignment = Alignment.Bottom,
@@ -148,7 +145,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 }
             }
             Slider(
-                modifier = Modifier.weight(0.5f),
+                modifier = Modifier.weight(1.2f),
                 //.border(2.dp, color = Color.Green),
                 value = betSliderPosition.value.amount.toFloat(),
                 onValueChange = { betSliderPosition.value =  it.bigBlind().round() },
@@ -176,11 +173,6 @@ fun ActionButton(modifier: Modifier = Modifier, onClick: () -> Unit, prefixText:
             .background(color = BUTTON_COLOR),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    //Button(
-    //    modifier = modifier,
-    //    onClick = onClick,
-    //    shape = RectangleShape,
-    //    colors = ButtonDefaults.buttonColors(containerColor = BUTTON_COLOR)
     ) {
         AmountText(prefixText = prefixText, amount = amount)
     }
