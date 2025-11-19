@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.bw0248.simple.poker.tech_demo.Logger
 import io.github.bw0248.spe.player.PlayerSeat
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -30,58 +30,74 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
 
             TableView(viewModel, boxWithConstraintsScope, Modifier.align(Alignment.TopCenter))
 
+            val tableDimensions = TableDimensions.fromParentContainerDimensions(
+                width = boxWithConstraintsScope.maxWidth,
+                height = boxWithConstraintsScope.maxHeight
+            )
             val playerDimensions = PlayerDimensions.from(
                 maxWidth = boxWithConstraintsScope.maxWidth,
-                maxHeight = boxWithConstraintsScope.maxHeight
+                maxHeight = boxWithConstraintsScope.maxHeight,
+                tableDimensions = tableDimensions
             )
+
+            Logger.info("PokerGameView", tableDimensions.toString())
+            Logger.info("PokerGameView", playerDimensions.toString())
 
             PlayerView(
                 "Player 1",
                 viewModel.uiState.playerViews[PlayerSeat.ONE],
-                width = playerDimensions.spacePerPlayer,
+                playerDimensions,
+                //width = playerDimensions.playerWidth,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .offset(x = playerDimensions.leftTopPlayerOffset, y = 30.dp)
+                    .offset(x = playerDimensions.leftTopPlayerHorizontalOffset, y = playerDimensions.topPlayerVerticalOffsetFromTop)
             )
             PlayerView(
                 "Player 2",
                 viewModel.uiState.playerViews[PlayerSeat.TWO],
-                width = playerDimensions.spacePerPlayer,
+                playerDimensions,
+                //width = playerDimensions.playerWidth,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .offset(x = playerDimensions.rightTopPlayerOffset, y = 30.dp)
+                    .offset(x = playerDimensions.rightTopPlayerHorizontalOffset, y = playerDimensions.topPlayerVerticalOffsetFromTop)
             )
             PlayerView(
                 "Player 3",
                 viewModel.uiState.playerViews[PlayerSeat.THREE],
-                width = playerDimensions.spacePerPlayer,
+                playerDimensions,
+                //width = playerDimensions.playerWidth,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .offset(x = playerDimensions.rightBottomPlayerOffset, y = (-40).dp)
+                    //.align(Alignment.CenterStart)
+                    .offset(x = playerDimensions.rightBottomPlayerHorizontalOffset, y = -playerDimensions.bottomOutsidePlayerVerticalOffset)
             )
             PlayerView(
                 "Player 4",
                 viewModel.uiState.playerViews[PlayerSeat.FOUR],
-                width = playerDimensions.spacePerPlayer,
+                playerDimensions,
+                //width = playerDimensions.playerWidth,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .offset(x = playerDimensions.rightBottomCenterPlayerOffset)
+                    .offset(x = playerDimensions.rightBottomCenterPlayerHorizontalOffset)
             )
             PlayerView(
                 "Player 5",
                 viewModel.uiState.playerViews[PlayerSeat.FIVE],
-                width = playerDimensions.spacePerPlayer,
+                playerDimensions,
+                //width = playerDimensions.playerWidth,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .offset(x = playerDimensions.leftBottomCenterPlayerOffset)
+                    .offset(x = playerDimensions.leftBottomCenterPlayerHorizontalOffset)
             )
             PlayerView(
                 "Player 6",
                 viewModel.uiState.playerViews[PlayerSeat.SIX],
-                width = playerDimensions.spacePerPlayer,
+                playerDimensions,
+                //width = playerDimensions.playerWidth,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .offset(x = playerDimensions.leftBottomPlayerOffset, y = (-40).dp)
+                    //.offset(x = playerDimensions.leftBottomPlayerHorizontalOffset, y = (-40).dp)
+                    .offset(x = playerDimensions.leftBottomPlayerHorizontalOffset, y = -playerDimensions.bottomOutsidePlayerVerticalOffset)
             )
         }
         ActionBar(viewModel, modifier = Modifier.weight(0.15f))
@@ -91,21 +107,23 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
 data class PlayerDimensions(
     val relativeHorizontalSpacingBetweenPlayers: Float,
     val absoluteHorizontalSpacingBetweenPlayers: Dp,
-    val spacePerPlayer: Dp,
-    val rightBottomCenterPlayerOffset: Dp,
-    val leftBottomCenterPlayerOffset: Dp,
-    val rightBottomPlayerOffset: Dp,
-    val leftBottomPlayerOffset: Dp,
-    val leftTopPlayerOffset: Dp,
-    val rightTopPlayerOffset: Dp,
+    val playerWidth: Dp,
+    val playerHeight: Dp,
+    val rightBottomCenterPlayerHorizontalOffset: Dp,
+    val leftBottomCenterPlayerHorizontalOffset: Dp,
+    val rightBottomPlayerHorizontalOffset: Dp,
+    val leftBottomPlayerHorizontalOffset: Dp,
+    val leftTopPlayerHorizontalOffset: Dp,
+    val rightTopPlayerHorizontalOffset: Dp,
+    val bottomOutsidePlayerVerticalOffset: Dp,
+    val topPlayerVerticalOffsetFromTop: Dp,
 ) {
     companion object {
         private const val NUM_BOTTOM_PLAYERS = 4
-        private const val RELATIVE_HORIZONTAL_SPACING_BETWEEN_PLAYERS = 0.05f
+        private const val RELATIVE_HORIZONTAL_SPACING_BETWEEN_PLAYERS = 0.07f
 
-        fun from(maxWidth: Dp, maxHeight: Dp): PlayerDimensions {
-            val numBottomPlayers = 4
-            //val relativeHorizontalSpacingBetweenPlayers = 0.05f
+        fun from(maxWidth: Dp, maxHeight: Dp, tableDimensions: TableDimensions): PlayerDimensions {
+            val numBottomPlayers = NUM_BOTTOM_PLAYERS
             val absoluteHorizontalSpacingBetweenPlayers = maxWidth * RELATIVE_HORIZONTAL_SPACING_BETWEEN_PLAYERS
 
             val totalHorizontalSpacingBetweenBottomPlayers = absoluteHorizontalSpacingBetweenPlayers * numBottomPlayers
@@ -114,22 +132,34 @@ data class PlayerDimensions(
             // offsets relative to BottomCenter for bottom center
             val rightBottomCenterPlayerOffset = ((spacePerPlayer / 2) + (absoluteHorizontalSpacingBetweenPlayers / 2))
             val leftBottomCenterPlayerOffset = -rightBottomCenterPlayerOffset
-            val leftBottomPlayerOffset = leftBottomCenterPlayerOffset - spacePerPlayer - absoluteHorizontalSpacingBetweenPlayers
-            val rightBottomPlayerOffset = rightBottomCenterPlayerOffset + spacePerPlayer + absoluteHorizontalSpacingBetweenPlayers
+            // adding some magic offsets to make players not touch betting line
+            val leftBottomPlayerOffset = (leftBottomCenterPlayerOffset - spacePerPlayer - absoluteHorizontalSpacingBetweenPlayers) - maxWidth * 0.015f
+            val rightBottomPlayerOffset = (rightBottomCenterPlayerOffset + spacePerPlayer + absoluteHorizontalSpacingBetweenPlayers) + maxWidth * 0.015f
 
-            // offsets are relative to TopCenter for top players but aligned with horizontal offsets for bottom players
-            val leftTopPlayerOffset = leftBottomPlayerOffset
-            val rightTopPlayerOffset = rightBottomPlayerOffset
+            // adding some magic offsets to make players not touch betting line
+            val leftTopPlayerOffset = leftBottomPlayerOffset - maxWidth * 0.005f
+            val rightTopPlayerOffset = rightBottomPlayerOffset + maxWidth * 0.005f
+
+            val playerHeight = maxHeight * 0.3f
+            val tableVerticalMiddle = (tableDimensions.absoluteTableHeight / 2) + tableDimensions.topPadding
+            Logger.info("PokerGameView", "TableVerticalMiddle: $tableVerticalMiddle")
+            Logger.info("PokerGameView", "maxHeight: $maxHeight")
+            val bottomLeftPlayerVerticalOffset = maxHeight - tableVerticalMiddle - playerHeight
+            val topLeftPlayerVerticalOffset = tableDimensions.topPadding
+
             return PlayerDimensions(
                 relativeHorizontalSpacingBetweenPlayers = RELATIVE_HORIZONTAL_SPACING_BETWEEN_PLAYERS,
                 absoluteHorizontalSpacingBetweenPlayers = absoluteHorizontalSpacingBetweenPlayers,
-                spacePerPlayer = spacePerPlayer,
-                rightBottomCenterPlayerOffset = rightBottomCenterPlayerOffset,
-                leftBottomCenterPlayerOffset = leftBottomCenterPlayerOffset,
-                rightBottomPlayerOffset = rightBottomPlayerOffset,
-                leftBottomPlayerOffset = leftBottomPlayerOffset,
-                rightTopPlayerOffset = rightTopPlayerOffset,
-                leftTopPlayerOffset = leftTopPlayerOffset
+                playerWidth = spacePerPlayer,
+                playerHeight = playerHeight,
+                rightBottomCenterPlayerHorizontalOffset = rightBottomCenterPlayerOffset,
+                leftBottomCenterPlayerHorizontalOffset = leftBottomCenterPlayerOffset,
+                rightBottomPlayerHorizontalOffset = rightBottomPlayerOffset,
+                leftBottomPlayerHorizontalOffset = leftBottomPlayerOffset,
+                rightTopPlayerHorizontalOffset = rightTopPlayerOffset,
+                leftTopPlayerHorizontalOffset = leftTopPlayerOffset,
+                bottomOutsidePlayerVerticalOffset = bottomLeftPlayerVerticalOffset,
+                topPlayerVerticalOffsetFromTop = topLeftPlayerVerticalOffset
             )
         }
     }
