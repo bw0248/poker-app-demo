@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,44 +39,54 @@ fun TableView(
         height = boxWithConstraintsScope.maxHeight
     )
 
-    androidx.compose.material3.Card(
+    Box(
         modifier = modifier
             .fillMaxWidth(tableDimensions.relativeTableWidth)
             .fillMaxHeight(tableDimensions.relativeTableHeight)
-            //.align(Alignment.TopCenter)
             .padding(top = tableDimensions.topPadding)
-        ,
-        //shape = RoundedCornerShape(300.dp),
-        shape = RoundedCornerShape(tableDimensions.cornerRadius),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1B5E20)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
     ) {
-        Box {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color(0xFF1B5E20), shape = RoundedCornerShape(tableDimensions.cornerRadius))
+                .border(
+                    width = tableDimensions.railThickness,
+                    //color = Color(0xFF8D6E63),
+                    color = Color(0xFF4E342E),
+                    shape = RoundedCornerShape(tableDimensions.cornerRadius)
+                ),
+        ) {}
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(tableDimensions.bettingLinePadding)
+                //.fillMaxSize(0.9f)
+                //.align(Alignment.CenterHorizontally)
+                .border(
+                    width = tableDimensions.bettingLineThickness,
+                    color = Color.White,
+                    shape = RoundedCornerShape(tableDimensions.cornerRadius)
+                ),
+        ) {}
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Row(
                 modifier = Modifier
+                    .weight(0.2f)
                     .fillMaxSize()
-                    .padding(tableDimensions.bettingLinePadding)
-                    //.fillMaxSize(0.9f)
-                    //.align(Alignment.CenterHorizontally)
-                    .border(
-                        width = tableDimensions.bettingLineThickness,
-                        color = Color.White,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(tableDimensions.cornerRadius)
-                    ),
-            ) {}
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                //.background(color = Color.Yellow),
+                ,
+                horizontalArrangement = Arrangement.Center,
+                //verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 Text(
                     modifier = Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                        )
-                        //.border(2.dp, color = Color.Red)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                        .background(color = Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
+                        .padding(8.dp),
                     text = "Pot: $123,456.99",
                     //text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.format()}",
                     autoSize = TextAutoSize.StepBased(
@@ -86,26 +94,24 @@ fun TableView(
                         maxFontSize = tableDimensions.potMaxFontSize.value.toInt().sp
                     ),
                     color = Color.White,
-                    style = MaterialTheme.typography.displaySmall,
-                    fontSize = 20.sp.nonScaledSp
                 )
-                Row(
-                    modifier = Modifier
-                        .weight(0.8f)
-                        .padding(
-                            start = tableDimensions.boardCardsHorizontalPadding,
-                            end = tableDimensions.boardCardsHorizontalPadding,
-                            top = tableDimensions.boardCardsTopPadding,
-                            //bottom = boardCardsBottomPadding,
-                        ),
-                    //.fillMaxSize()
-                    //.background(Color.Magenta)
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    (0..4).map {
-                        //BoardCardView(Card(CardSuit.HEARTS, CardValue.QUEEN, CardState.OPEN), Modifier.weight(1f))
-                        BoardCardView(viewModel.uiState.communityCards.getOrNull(it), Modifier.Companion.weight(1f))
-                    }
+            }
+            Row(
+                modifier = Modifier
+                    .weight(0.8f)
+                    .padding(
+                        start = tableDimensions.boardCardsHorizontalPadding,
+                        end = tableDimensions.boardCardsHorizontalPadding,
+                        top = tableDimensions.boardCardsTopPadding,
+                        //bottom = boardCardsBottomPadding,
+                    ),
+                //.fillMaxSize()
+                //.background(Color.Magenta)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                (0..4).map {
+                    BoardCardView(Card(CardSuit.HEARTS, CardValue.QUEEN, CardState.OPEN), Modifier.weight(1f))
+                    //BoardCardView(viewModel.uiState.communityCards.getOrNull(it), Modifier.Companion.weight(1f))
                 }
             }
         }
@@ -123,7 +129,9 @@ data class TableDimensions(
     val boardCardsTopPadding: Dp,
     val bettingLinePadding: Dp,
     val bettingLineThickness: Dp,
+    val railThickness: Dp,
     val potMaxFontSize: Dp,
+    val potVerticalPadding: Dp,
 ) {
     companion object {
         const val RELATIVE_TABLE_WIDTH: Float = 0.7f
@@ -135,15 +143,17 @@ data class TableDimensions(
             val absoluteTableWidth = width * relativeTableWidth
             val absoluteTableHeight = height * relativeTableHeight
             val boardCardsHorizontalPadding = width * relativeTableWidth * 0.2f
-            val boardCardsTopPadding = height * relativeTableHeight * 0.1f
+            val boardCardsTopPadding = height * relativeTableHeight * 0.05f
 
             val bettingLinePadding = absoluteTableWidth * 0.05f
             val bettingLineThickness = absoluteTableWidth * 0.004f
+            val railThickness = absoluteTableWidth * 0.022f
 
             val tableRadius = height * 0.50f
             val tableTopPadding = height * 0.05f
 
             val potMaxFontSize = absoluteTableWidth * 0.03f
+            val potVerticalPadding = absoluteTableHeight * 0.05f
             return TableDimensions(
                 relativeTableWidth = RELATIVE_TABLE_WIDTH,
                 relativeTableHeight = RELATIVE_TABLE_HEIGHT,
@@ -155,7 +165,9 @@ data class TableDimensions(
                 boardCardsTopPadding = boardCardsTopPadding,
                 bettingLinePadding = bettingLinePadding,
                 bettingLineThickness = bettingLineThickness,
-                potMaxFontSize = potMaxFontSize
+                railThickness = railThickness,
+                potMaxFontSize = potMaxFontSize,
+                potVerticalPadding = potVerticalPadding
             )
         }
     }
