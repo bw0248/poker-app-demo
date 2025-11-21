@@ -1,14 +1,17 @@
 package io.github.bw0248.simple.poker.tech_demo.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
@@ -17,32 +20,72 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.bw0248.spe.card.Card
-import io.github.bw0248.spe.card.CardState
-import io.github.bw0248.spe.card.CardSuit
-import io.github.bw0248.spe.card.CardValue
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import tech_demo.composeapp.generated.resources.Res
+import tech_demo.composeapp.generated.resources.allDrawableResources
+
+@Composable
+fun PlayerBox(
+    name: String,
+    playerView: PlayerView?,
+    dimensions: PlayerBoxDimensions,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(dimensions.size)
+            .background(Color.Transparent)
+            .border(2.dp, Color.Yellow),
+        contentAlignment = dimensions.contentAlignment
+    ) {
+        PlayerView(
+            name,
+            playerView,
+            dimensions.playerViewDimensions,
+        )
+        Box(
+            modifier = Modifier.align(dimensions.bettingBoxDimensions.bettingBoxAlignment)
+                .size(dimensions.bettingBoxDimensions.bettingBoxSize)
+                //.background(Color.Red)
+        ) {
+            Image(
+                painter = painterResource(Res.allDrawableResources["dealer_flat"]!!),
+                contentDescription = "Dealer Button",
+                modifier = Modifier
+                    .size(dimensions.bettingBoxDimensions.dealerButtonDimensions.size)
+                    .align(dimensions.bettingBoxDimensions.dealerButtonDimensions.alignment)
+                    .offset(
+                        x = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.x,
+                        y = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.y
+                    ),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+    }
+}
 
 @Composable
 @Preview
 fun PlayerView(
     name: String,
     playerView: PlayerView?,
-    playerDimensions: PlayerDimensions,
+    playerViewDimensions: PlayerViewDimensions,
+    //playerDimensions: PlayerDimensions,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             //.fillMaxHeight(0.3f)
-            .height(playerDimensions.playerHeight)
+            .height(playerViewDimensions.size.height)
             //.fillMaxWidth(0.2f)
-            .width(playerDimensions.playerWidth)
+            .width(playerViewDimensions.size.width)
         //.background(color = Color.Red)
         //.fillMaxSize(),
         ,
@@ -59,8 +102,8 @@ fun PlayerView(
                 horizontalArrangement = Arrangement.Center
             ) {
                 it.holeCards.map { card ->
-                    //HoleCardView(card, modifier = Modifier.weight(1f))
-                    HoleCardView(Card(CardSuit.SPADES, CardValue.ACE, CardState.OPEN), modifier = Modifier.weight(1f))
+                    HoleCardView(card, modifier = Modifier.weight(1f))
+                    //HoleCardView(Card(CardSuit.SPADES, CardValue.ACE, CardState.OPEN), modifier = Modifier.weight(1f))
                     //HoleCardView(Card(CardSuit.SPADES, CardValue.ACE, CardState.HIDDEN), modifier = Modifier.weight(1f))
                 }
             }
