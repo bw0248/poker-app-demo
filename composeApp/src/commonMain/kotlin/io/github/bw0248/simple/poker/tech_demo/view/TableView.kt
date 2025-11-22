@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.bw0248.simple.poker.tech_demo.Dollar
+import io.github.bw0248.simple.poker.tech_demo.calculateChipDistribution
 import io.github.bw0248.spe.card.Card
 import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardSuit
@@ -73,18 +75,20 @@ fun TableView(
                 ) {
                     val numSlots = 4
                     val initialOffset = -((gameDimensions.chipSize * numSlots) / 2)
-                    (0 until numSlots).forEach { slot ->
-                        (0 until 10).forEach {
-                            Image(
-                                painter = painterResource(Res.allDrawableResources["_100"]!!),
-                                contentDescription = "Chips in pot",
-                                modifier = Modifier
-                                    .size(gameDimensions.chipSize)
-                                    .offset(x = initialOffset + (gameDimensions.chipSize * slot), y = -((gameDimensions.chipSize * 0.2f) * it)),
-                                contentScale = ContentScale.FillBounds
+                    val potsize = Dollar.of(123_456.99)
+                    val chipSlots = calculateChipDistribution(potsize, numSlots)
+                    chipSlots.forEachIndexed { slotIndex, slot ->
+                       slot.forEachIndexed { chipIndex, chip ->
+                           Image(
+                               painter = painterResource(Res.allDrawableResources[chip]!!),
+                               contentDescription = "Chips in pot",
+                               modifier = Modifier
+                                   .size(gameDimensions.chipSize)
+                                   .offset(x = initialOffset + (gameDimensions.chipSize * slotIndex), y = -((gameDimensions.chipSize * 0.2f) * chipIndex)),
+                               contentScale = ContentScale.FillBounds
 
-                            )
-                        }
+                           )
+                       }
                     }
                 }
                 Row(
