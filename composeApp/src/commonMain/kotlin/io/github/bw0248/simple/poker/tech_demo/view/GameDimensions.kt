@@ -8,19 +8,30 @@ import androidx.compose.ui.unit.dp
 import io.github.bw0248.spe.player.PlayerSeat
 
 data class GameDimensions(
+    val dealerButtonSize: Dp,
+    val chipSize: Dp,
     val tableDimensions: TableDimensions,
     val playerDimensions: Map<PlayerSeat, PlayerDimension>,
 ) {
     companion object {
         fun init(maxWidth: Dp, maxHeight: Dp): GameDimensions {
+            val dealerButtonSize = maxWidth * 0.03f
+            val chipSize = dealerButtonSize * 0.75f
             val tableDimensions = TableDimensions.fromParentContainerDimensions(width = maxWidth, height = maxHeight)
             val playerDimensions = PlayerDimension.calculateFor6MaxGame(
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
+                dealerButtonSize = dealerButtonSize,
+                chipSize = chipSize,
                 tableDimensions = tableDimensions
             )
 
-            return GameDimensions(tableDimensions, playerDimensions)
+            return GameDimensions(
+                dealerButtonSize = dealerButtonSize,
+                chipSize = chipSize,
+                tableDimensions = tableDimensions,
+                playerDimensions = playerDimensions
+            )
         }
     }
 }
@@ -93,6 +104,8 @@ data class PlayerDimension(
         fun calculateFor6MaxGame(
             maxWidth: Dp,
             maxHeight: Dp,
+            dealerButtonSize: Dp,
+            chipSize: Dp,
             tableDimensions: TableDimensions
         ): Map<PlayerSeat, PlayerDimension> {
             val numBottomPlayers = NUM_BOTTOM_PLAYERS
@@ -132,9 +145,6 @@ data class PlayerDimension(
             val topRightOutsidePlayerOffset = DpOffset(x = rightTopPlayerOffset, y = topOutsidePlayerVerticalOffset)
             val topLeftOutsidePlayerOffset =
                 DpOffset(x = -topRightOutsidePlayerOffset.x, y = topOutsidePlayerVerticalOffset)
-
-            val dealerButtonSize = maxWidth * 0.03f
-            val chipSize = dealerButtonSize * 0.75f
 
             return sixMaxSeats.map {
                 when (it) {

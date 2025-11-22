@@ -78,7 +78,7 @@ fun PlayerBox(
                     contentAlignment = slot.alignment//Alignment.BottomCenter
                 ) {
                     (0..2).forEach {
-                        Logger.info("PlayerBox", Res.allDrawableResources.keys.toString())
+                        //Logger.info("PlayerBox", Res.allDrawableResources.keys.toString())
                         Image(
                             painter = painterResource(Res.allDrawableResources["_100"]!!),
                             contentDescription = "Chips",

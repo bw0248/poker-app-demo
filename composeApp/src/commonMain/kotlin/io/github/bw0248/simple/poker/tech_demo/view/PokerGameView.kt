@@ -30,7 +30,7 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
                 maxHeight = boxWithConstraintsScope.maxHeight
             )
 
-            TableView(viewModel, gameDimensions.tableDimensions, Modifier.align(TopCenter))
+            TableView(viewModel, gameDimensions, Modifier.align(TopCenter))
 
             Logger.info("PokerGameView", gameDimensions.tableDimensions.toString())
             Logger.info("PokerGameView", gameDimensions.playerDimensions.toString())

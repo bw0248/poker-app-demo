@@ -1,5 +1,6 @@
 package io.github.bw0248.simple.poker.tech_demo.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
@@ -18,17 +21,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.bw0248.spe.card.Card
 import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardSuit
 import io.github.bw0248.spe.card.CardValue
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import tech_demo.composeapp.generated.resources.Res
+import tech_demo.composeapp.generated.resources.allDrawableResources
 
 @Composable
 @Preview
-fun TableView(viewModel: PokerGameViewModel, tableDimensions: TableDimensions, modifier: Modifier = Modifier) {
+fun TableView(
+    viewModel: PokerGameViewModel,
+    gameDimensions: GameDimensions,
+    modifier: Modifier = Modifier
+) {
+    val tableDimensions = gameDimensions.tableDimensions
     Box(
         modifier = modifier
             .fillMaxWidth(tableDimensions.relativeTableWidth)
@@ -42,36 +54,70 @@ fun TableView(viewModel: PokerGameViewModel, tableDimensions: TableDimensions, m
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
+            Column(
                 modifier = Modifier
-                    .weight(0.2f)
-                    .fillMaxSize()
-                //.background(color = Color.Yellow),
+                    .weight(0.3f)
+                    .fillMaxWidth(0.6f)
+                    .fillMaxHeight()
+                    //.fillMaxSize()
+                    //.background(color = Color.Yellow)
                 ,
-                horizontalArrangement = Arrangement.Center,
-                //verticalAlignment = Alignment.CenterVertically
-                verticalAlignment = Alignment.Top
             ) {
-                Text(
+                Box(
                     modifier = Modifier
-                        .background(color = Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
-                        .padding(8.dp),
-                    text = "Pot: $123,456.99",
-                    //text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.format()}",
-                    autoSize = TextAutoSize.StepBased(
-                        minFontSize = 6.sp,
-                        maxFontSize = tableDimensions.potMaxFontSize.value.toInt().sp
-                    ),
-                    color = Color.White,
-                )
+                        .weight(0.5f)
+                        .fillMaxSize()
+                        //.background(Color.Red)
+                    ,
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    val numSlots = 4
+                    val initialOffset = -((gameDimensions.chipSize * numSlots) / 2)
+                    (0 until numSlots).forEach { slot ->
+                        (0 until 10).forEach {
+                            Image(
+                                painter = painterResource(Res.allDrawableResources["_100"]!!),
+                                contentDescription = "Chips in pot",
+                                modifier = Modifier
+                                    .size(gameDimensions.chipSize)
+                                    .offset(x = initialOffset + (gameDimensions.chipSize * slot), y = -((gameDimensions.chipSize * 0.2f) * it)),
+                                contentScale = ContentScale.FillBounds
+
+                            )
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .weight(0.5f)
+                        .fillMaxSize()
+                        //.background(Color.Green)
+                    ,
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .background(color = Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
+                            .padding(4.dp)
+                                ,
+                        text = "Pot: $123,456.99",
+                        //text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.format()}",
+                        autoSize = TextAutoSize.StepBased(
+                            minFontSize = 6.sp,
+                            maxFontSize = tableDimensions.potMaxFontSize.value.toInt().sp
+                        ),
+                        color = Color.White,
+                    )
+                }
             }
             Row(
                 modifier = Modifier
-                    .weight(0.8f)
+                    .weight(0.7f)
                     .padding(
                         start = tableDimensions.boardCardsHorizontalPadding,
                         end = tableDimensions.boardCardsHorizontalPadding,
-                        top = tableDimensions.boardCardsTopPadding,
+                        //top = tableDimensions.boardCardsTopPadding,
                         //bottom = boardCardsBottomPadding,
                     ),
                 //.fillMaxSize()
@@ -84,14 +130,6 @@ fun TableView(viewModel: PokerGameViewModel, tableDimensions: TableDimensions, m
                 }
             }
         }
-        //Box(
-        //    modifier = Modifier
-        //        .align(Alignment.TopStart)
-        //        .offset(y = 15.dp)
-        //        .fillMaxHeight(0.25f)
-        //        .fillMaxWidth(0.25f)
-        //        .background(color = Color.Yellow)
-        //) {}
     }
 }
 
