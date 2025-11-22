@@ -24,6 +24,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.bw0248.simple.poker.tech_demo.Logger
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
 import org.jetbrains.compose.resources.painterResource
@@ -67,6 +68,28 @@ fun PlayerBox(
                     ),
                 contentScale = ContentScale.FillBounds
             )
+            dimensions.bettingBoxDimensions.chipSlotBoxes.forEach { slot ->
+                Box(
+                    modifier = Modifier
+                        .align(slot.alignment)
+                        .offset(x = slot.chipSlotOffset.x, y = slot.chipSlotOffset.y)
+                        //.background(Color.Red),
+                            ,
+                    contentAlignment = slot.alignment//Alignment.BottomCenter
+                ) {
+                    (0..2).forEach {
+                        Logger.info("PlayerBox", Res.allDrawableResources.keys.toString())
+                        Image(
+                            painter = painterResource(Res.allDrawableResources["_100"]!!),
+                            contentDescription = "Chips",
+                            modifier = Modifier
+                                .size(slot.size)
+                                .offset(y = slot.chipSlotOffset.y - (slot.verticalOffsetIncrementPerChip * it)),
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -77,17 +100,13 @@ fun PlayerView(
     name: String,
     playerView: PlayerView?,
     playerViewDimensions: PlayerViewDimensions,
-    //playerDimensions: PlayerDimensions,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
-            //.fillMaxHeight(0.3f)
             .height(playerViewDimensions.size.height)
-            //.fillMaxWidth(0.2f)
             .width(playerViewDimensions.size.width)
         //.background(color = Color.Red)
-        //.fillMaxSize(),
         ,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -131,8 +150,6 @@ fun PlayerView(
                     maxLines = 1,
                     softWrap = false,
                     autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, maxFontSize),
-                    //style = MaterialTheme.typography.displaySmall.copy(fontSize = TextUnit.Unspecified),
-                    //fontSize = 16.nonScaledSp,
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )

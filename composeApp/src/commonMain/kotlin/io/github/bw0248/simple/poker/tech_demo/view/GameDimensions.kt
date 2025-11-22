@@ -133,6 +133,9 @@ data class PlayerDimension(
             val topLeftOutsidePlayerOffset =
                 DpOffset(x = -topRightOutsidePlayerOffset.x, y = topOutsidePlayerVerticalOffset)
 
+            val dealerButtonSize = maxWidth * 0.03f
+            val chipSize = dealerButtonSize * 0.75f
+
             return sixMaxSeats.map {
                 when (it) {
                     PlayerSeat.ONE -> PlayerDimension(
@@ -154,7 +157,18 @@ data class PlayerDimension(
                                     height = playerViewHeight
                                 ),
                                 bettingBoxAlignment = Alignment.CenterEnd,
-                                dealerButtonDimensions = DealerButtonDimensions.forSeat(it, maxWidth, maxHeight)
+                                dealerButtonDimensions = DealerButtonDimensions.forSeat(
+                                    playerSeat = it,
+                                    dealerButtonSize = dealerButtonSize,
+                                    screenWidth = maxWidth,
+                                    screenHeight = maxHeight
+                                ),
+                                ChipSlotBox.forSeat(
+                                    playerSeat = it,
+                                    chipSize,
+                                    maxWidth = maxWidth,
+                                    maxHeight = maxHeight
+                                )
                             )
                         )
                     )
@@ -177,7 +191,18 @@ data class PlayerDimension(
                                     height = playerViewHeight
                                 ),
                                 bettingBoxAlignment = Alignment.CenterStart,
-                                dealerButtonDimensions = DealerButtonDimensions.forSeat(it, maxWidth, maxHeight)
+                                dealerButtonDimensions = DealerButtonDimensions.forSeat(
+                                    playerSeat = it,
+                                    dealerButtonSize = dealerButtonSize,
+                                    screenWidth = maxWidth,
+                                    screenHeight = maxHeight
+                                ),
+                                ChipSlotBox.forSeat(
+                                    playerSeat = it,
+                                    chipSize,
+                                    maxWidth = maxWidth,
+                                    maxHeight = maxHeight
+                                )
                             )
                         )
                     )
@@ -200,7 +225,18 @@ data class PlayerDimension(
                                     height = playerViewHeight
                                 ),
                                 bettingBoxAlignment = Alignment.CenterStart,
-                                dealerButtonDimensions = DealerButtonDimensions.forSeat(it, maxWidth, maxHeight)
+                                dealerButtonDimensions = DealerButtonDimensions.forSeat(
+                                    playerSeat = it,
+                                    dealerButtonSize = dealerButtonSize,
+                                    screenWidth = maxWidth,
+                                    screenHeight = maxHeight
+                                ),
+                                ChipSlotBox.forSeat(
+                                    playerSeat = it,
+                                    chipSize,
+                                    maxWidth = maxWidth,
+                                    maxHeight = maxHeight
+                                )
                             )
                         )
                     )
@@ -220,7 +256,18 @@ data class PlayerDimension(
                             bettingBoxDimensions = BettingBoxDimensions(
                                 bettingBoxSize = DpSize(width = playerViewWidth, height = bettingBoxVerticalExtension),
                                 bettingBoxAlignment = Alignment.TopStart,
-                                dealerButtonDimensions = DealerButtonDimensions.forSeat(it, maxWidth, maxHeight)
+                                dealerButtonDimensions = DealerButtonDimensions.forSeat(
+                                    playerSeat = it,
+                                    dealerButtonSize = dealerButtonSize,
+                                    screenWidth = maxWidth,
+                                    screenHeight = maxHeight
+                                ),
+                                ChipSlotBox.forSeat(
+                                    playerSeat = it,
+                                    chipSize,
+                                    maxWidth = maxWidth,
+                                    maxHeight = maxHeight
+                                )
                             )
                         )
                     )
@@ -240,7 +287,18 @@ data class PlayerDimension(
                             bettingBoxDimensions = BettingBoxDimensions(
                                 bettingBoxSize = DpSize(width = playerViewWidth, height = bettingBoxVerticalExtension),
                                 bettingBoxAlignment = Alignment.TopStart,
-                                dealerButtonDimensions = DealerButtonDimensions.forSeat(it, maxWidth, maxHeight)
+                                dealerButtonDimensions = DealerButtonDimensions.forSeat(
+                                    playerSeat = it,
+                                    dealerButtonSize = dealerButtonSize,
+                                    screenWidth = maxWidth,
+                                    screenHeight = maxHeight
+                                ),
+                                ChipSlotBox.forSeat(
+                                    playerSeat = it,
+                                    chipSize,
+                                    maxWidth = maxWidth,
+                                    maxHeight = maxHeight
+                                )
                             )
                         )
                     )
@@ -263,7 +321,18 @@ data class PlayerDimension(
                                     height = playerViewHeight
                                 ),
                                 bettingBoxAlignment = Alignment.CenterEnd,
-                                dealerButtonDimensions = DealerButtonDimensions.forSeat(it, maxWidth, maxHeight)
+                                dealerButtonDimensions = DealerButtonDimensions.forSeat(
+                                    playerSeat = it,
+                                    dealerButtonSize = dealerButtonSize,
+                                    screenWidth = maxWidth,
+                                    screenHeight = maxHeight
+                                ),
+                                ChipSlotBox.forSeat(
+                                    playerSeat = it,
+                                    chipSize = chipSize,
+                                    maxWidth = maxWidth,
+                                    maxHeight = maxHeight
+                                )
                             )
                         )
                     )
@@ -296,7 +365,77 @@ data class BettingBoxDimensions(
     val bettingBoxSize: DpSize,
     val bettingBoxAlignment: Alignment,
     val dealerButtonDimensions: DealerButtonDimensions,
+    val chipSlotBoxes: List<ChipSlotBox>,
 )
+
+data class ChipSlotBox(
+    val size: Dp,
+    val alignment: Alignment,
+    val chipSlotOffset: DpOffset,
+    val verticalOffsetIncrementPerChip: Dp
+) {
+    companion object {
+        fun forSeat(playerSeat: PlayerSeat, chipSize: Dp, maxWidth: Dp, maxHeight: Dp): List<ChipSlotBox> {
+            val numChipSlots = 4
+            val verticalIncrementPerChip = chipSize * 0.2f
+            val bottomCenterPlayerChipSlotBoxOffsets: List<ChipSlotBox> = (0 until numChipSlots - 1)
+                .runningFold(DpOffset(x = maxWidth * 0.05f, y = -(maxHeight * 0.01f))) {
+                        acc: DpOffset, i: Int -> DpOffset(x = acc.x + chipSize, y = acc.y)
+                }.map {
+                    ChipSlotBox(
+                        size = chipSize,
+                        alignment = Alignment.BottomStart,
+                        chipSlotOffset = it,
+                        verticalOffsetIncrementPerChip = verticalIncrementPerChip
+                    )
+                }
+
+            val bottomRightOutsidePlayerChipSlotBoxOffsets = (0 until numChipSlots - 1)
+                .runningFold(DpOffset(x = 0.dp, y = chipSize * 0.2f)) { acc: DpOffset, i: Int ->
+                    DpOffset(x = acc.x - (chipSize * 0.5f), y = acc.y + (chipSize / 2))
+                }.map {
+                    ChipSlotBox(
+                        size = chipSize,
+                        alignment = Alignment.TopCenter,
+                        chipSlotOffset = it,
+                        verticalOffsetIncrementPerChip = verticalIncrementPerChip
+                    )
+                }
+            val bottomLeftOutsidePlayerChipSlotBoxOffsets = bottomRightOutsidePlayerChipSlotBoxOffsets
+                .map { it.copy(chipSlotOffset = it.chipSlotOffset.copy(x = it.chipSlotOffset.x * -1)) }
+
+            val topRightPlayerChipSloBoxOffsets = (0 until numChipSlots - 1)
+                .runningFold(DpOffset(x = -(chipSize * 0.25f), y = chipSize * 0.75f)) { acc: DpOffset, i: Int ->
+                    DpOffset(x = acc.x - (chipSize * 0.5f), y = acc.y - (chipSize / 2))
+                }.map {
+                    ChipSlotBox(
+                        size = chipSize,
+                        alignment = Alignment.BottomCenter,
+                        chipSlotOffset = it,
+                        verticalOffsetIncrementPerChip = verticalIncrementPerChip
+                    )
+                }
+                // chip slots for top players need to be reversed to make sure they are rendered top to bottom
+                // in order for lower chip stack to be drawn over/in front of higher chip stack
+                .reversed()
+            val topLeftPlayerChipSlotBoxOffsets = topRightPlayerChipSloBoxOffsets
+                .map { it.copy(chipSlotOffset = it.chipSlotOffset.copy(x = it.chipSlotOffset.x * -1)) }
+
+            return when(playerSeat) {
+                PlayerSeat.ONE -> topLeftPlayerChipSlotBoxOffsets
+                PlayerSeat.TWO -> topRightPlayerChipSloBoxOffsets
+                PlayerSeat.THREE -> bottomRightOutsidePlayerChipSlotBoxOffsets
+                PlayerSeat.FOUR -> bottomCenterPlayerChipSlotBoxOffsets
+                PlayerSeat.FIVE -> bottomCenterPlayerChipSlotBoxOffsets
+                PlayerSeat.SIX -> bottomLeftOutsidePlayerChipSlotBoxOffsets
+                PlayerSeat.SEVEN -> TODO()
+                PlayerSeat.EIGHT -> TODO()
+                PlayerSeat.NINE -> TODO()
+                PlayerSeat.TEN -> TODO()
+            }
+        }
+    }
+}
 
 data class DealerButtonDimensions(
     val size: Dp,
@@ -304,40 +443,38 @@ data class DealerButtonDimensions(
     val offset: DpOffset
 ) {
     companion object {
-        fun forSeat(playerSeat: PlayerSeat, screenWidth: Dp, screenHeight: Dp): DealerButtonDimensions {
-            // @TODO: size calculation should probably be unified with chip size calculation
-            val size = screenWidth * 0.03f
+        fun forSeat(playerSeat: PlayerSeat, dealerButtonSize: Dp, screenWidth: Dp, screenHeight: Dp): DealerButtonDimensions {
             val topOutsidePlayerDealerButtonOffset = DpOffset(x = screenWidth * 0.01f, y = 0.dp)
             val bottomOutsidePlayerOffset = DpOffset(x = screenWidth * 0.01f, y = -(screenHeight * 0.1f))
             val centerPlayerDealerButtonOffset = DpOffset(x = screenWidth * 0.025f, y = screenHeight * 0.15f)
             return when (playerSeat) {
                 PlayerSeat.ONE -> DealerButtonDimensions(
-                    size = size,
+                    size = dealerButtonSize,
                     alignment = Alignment.BottomStart,
                     offset = topOutsidePlayerDealerButtonOffset
                 )
                 PlayerSeat.TWO -> DealerButtonDimensions(
-                    size = size,
+                    size = dealerButtonSize,
                     alignment = Alignment.BottomEnd,
                     offset = DpOffset(x = -topOutsidePlayerDealerButtonOffset.x, y = topOutsidePlayerDealerButtonOffset.y)
                 )
                 PlayerSeat.THREE -> DealerButtonDimensions(
-                    size = size,
+                    size = dealerButtonSize,
                     alignment = Alignment.BottomEnd,
                     offset = DpOffset(x = -bottomOutsidePlayerOffset.x, y = bottomOutsidePlayerOffset.y)
                 )
                 PlayerSeat.FOUR -> DealerButtonDimensions(
-                    size = size,
+                    size = dealerButtonSize,
                     alignment = Alignment.BottomStart,
                     offset = DpOffset(x = -centerPlayerDealerButtonOffset.x, y = centerPlayerDealerButtonOffset.y)
                 )
                 PlayerSeat.FIVE -> DealerButtonDimensions(
-                    size = size,
+                    size = dealerButtonSize,
                     alignment = Alignment.BottomEnd,
                     offset = DpOffset(x = centerPlayerDealerButtonOffset.x, y = centerPlayerDealerButtonOffset.y)
                 )
                 PlayerSeat.SIX -> DealerButtonDimensions(
-                    size = size,
+                    size = dealerButtonSize,
                     alignment = Alignment.BottomStart,
                     offset = DpOffset(x = bottomOutsidePlayerOffset.x, y = bottomOutsidePlayerOffset.y)
                 )
