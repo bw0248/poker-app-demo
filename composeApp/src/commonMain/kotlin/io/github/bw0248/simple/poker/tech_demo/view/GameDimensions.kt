@@ -382,52 +382,63 @@ data class ChipSlotBox(
     val size: Dp,
     val alignment: Alignment,
     val chipSlotOffset: DpOffset,
-    val verticalOffsetIncrementPerChip: Dp
+    val verticalOffsetIncrementPerChip: Dp,
+    // slots above need to be drawn first so that they appear 'behind' the stack below/in front
+    val drawingOrder: Int,
 ) {
     companion object {
         fun forSeat(playerSeat: PlayerSeat, chipSize: Dp, maxWidth: Dp, maxHeight: Dp): List<ChipSlotBox> {
             val numChipSlots = 4
+
+            // priority for slots, e.g. slot with index 3 should be used for bets with single stack
+            // this is to make sure that bets are rendered in front of players and only if needed i.e. in 3bet, 4bet
+            // scenarios outer slots are being used to render chips
+            val chipSlotPriority = listOf(3, 2, 4, 1)
             val verticalIncrementPerChip = chipSize * 0.2f
             val bottomCenterPlayerChipSlotBoxOffsets: List<ChipSlotBox> = (0 until numChipSlots - 1)
                 .runningFold(DpOffset(x = maxWidth * 0.05f, y = -(maxHeight * 0.01f))) {
                         acc: DpOffset, i: Int -> DpOffset(x = acc.x + chipSize, y = acc.y)
-                }.map {
+                }.mapIndexed { idx, value ->
                     ChipSlotBox(
                         size = chipSize,
                         alignment = Alignment.BottomStart,
-                        chipSlotOffset = it,
-                        verticalOffsetIncrementPerChip = verticalIncrementPerChip
+                        chipSlotOffset = value,
+                        verticalOffsetIncrementPerChip = verticalIncrementPerChip,
+                        drawingOrder = idx
                     )
-                }
+                }.let { slots -> chipSlotPriority.map { slots[it - 1] } }
 
             val bottomRightOutsidePlayerChipSlotBoxOffsets = (0 until numChipSlots - 1)
                 .runningFold(DpOffset(x = 0.dp, y = chipSize * 0.2f)) { acc: DpOffset, i: Int ->
                     DpOffset(x = acc.x - (chipSize * 0.5f), y = acc.y + (chipSize / 2))
-                }.map {
+                }.mapIndexed { idx, value ->
                     ChipSlotBox(
                         size = chipSize,
                         alignment = Alignment.TopCenter,
-                        chipSlotOffset = it,
-                        verticalOffsetIncrementPerChip = verticalIncrementPerChip
+                        chipSlotOffset = value,
+                        verticalOffsetIncrementPerChip = verticalIncrementPerChip,
+                        drawingOrder = idx
                     )
-                }
+                }.let { slots -> chipSlotPriority.map { slots[it - 1] } }
             val bottomLeftOutsidePlayerChipSlotBoxOffsets = bottomRightOutsidePlayerChipSlotBoxOffsets
                 .map { it.copy(chipSlotOffset = it.chipSlotOffset.copy(x = it.chipSlotOffset.x * -1)) }
 
             val topRightPlayerChipSloBoxOffsets = (0 until numChipSlots - 1)
                 .runningFold(DpOffset(x = -(chipSize * 0.25f), y = chipSize * 0.75f)) { acc: DpOffset, i: Int ->
                     DpOffset(x = acc.x - (chipSize * 0.5f), y = acc.y - (chipSize / 2))
-                }.map {
-                    ChipSlotBox(
-                        size = chipSize,
-                        alignment = Alignment.BottomCenter,
-                        chipSlotOffset = it,
-                        verticalOffsetIncrementPerChip = verticalIncrementPerChip
-                    )
                 }
                 // chip slots for top players need to be reversed to make sure they are rendered top to bottom
                 // in order for lower chip stack to be drawn over/in front of higher chip stack
                 .reversed()
+                .mapIndexed { idx, value ->
+                    ChipSlotBox(
+                        size = chipSize,
+                        alignment = Alignment.BottomCenter,
+                        chipSlotOffset = value,
+                        verticalOffsetIncrementPerChip = verticalIncrementPerChip,
+                        drawingOrder = idx
+                    )
+                }.let { slots -> chipSlotPriority.map { slots[it - 1] } }
             val topLeftPlayerChipSlotBoxOffsets = topRightPlayerChipSloBoxOffsets
                 .map { it.copy(chipSlotOffset = it.chipSlotOffset.copy(x = it.chipSlotOffset.x * -1)) }
 

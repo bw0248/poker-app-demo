@@ -39,6 +39,8 @@ fun PokerGameView(viewModel: PokerGameViewModel = viewModel()) {
                 PlayerBox(
                     name = it.seat.name,
                     playerView = viewModel.uiState.playerViews[it.seat],
+                    playerSeat = it.seat,
+                    viewModel = viewModel,
                     dimensions = it.playerBoxDimensions,
                     modifier = Modifier
                         .align(it.playerBoxDimensions.alignment)

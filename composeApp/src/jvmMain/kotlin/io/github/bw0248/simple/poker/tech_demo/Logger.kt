@@ -4,4 +4,7 @@ actual object Logger {
     actual fun info(tag: String, message: String) {
 
     }
+
+    actual fun error(tag: String, message: String) {
+    }
 }

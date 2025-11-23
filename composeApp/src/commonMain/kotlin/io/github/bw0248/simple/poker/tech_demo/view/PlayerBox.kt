@@ -24,7 +24,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.bw0248.simple.poker.tech_demo.Logger
+import io.github.bw0248.simple.poker.tech_demo.calculateChipDistribution
+import io.github.bw0248.spe.BigBlind
+import io.github.bw0248.spe.config.GameConfig
+import io.github.bw0248.spe.player.PlayerRole
+import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
 import org.jetbrains.compose.resources.painterResource
@@ -36,6 +40,8 @@ import tech_demo.composeapp.generated.resources.allDrawableResources
 fun PlayerBox(
     name: String,
     playerView: PlayerView?,
+    playerSeat: PlayerSeat,
+    viewModel: PokerGameViewModel,
     dimensions: PlayerBoxDimensions,
     modifier: Modifier = Modifier
 ) {
@@ -43,50 +49,71 @@ fun PlayerBox(
         modifier = modifier
             .size(dimensions.size)
             .background(Color.Transparent)
-            .border(2.dp, Color.Yellow),
+            //.border(2.dp, Color.Yellow),
+        ,
         contentAlignment = dimensions.contentAlignment
     ) {
-        PlayerView(
-            name,
-            playerView,
-            dimensions.playerViewDimensions,
-        )
-        Box(
-            modifier = Modifier.align(dimensions.bettingBoxDimensions.bettingBoxAlignment)
-                .size(dimensions.bettingBoxDimensions.bettingBoxSize)
-                //.background(Color.Red)
-        ) {
-            Image(
-                painter = painterResource(Res.allDrawableResources["dealer_flat"]!!),
-                contentDescription = "Dealer Button",
-                modifier = Modifier
-                    .size(dimensions.bettingBoxDimensions.dealerButtonDimensions.size)
-                    .align(dimensions.bettingBoxDimensions.dealerButtonDimensions.alignment)
-                    .offset(
-                        x = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.x,
-                        y = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.y
-                    ),
-                contentScale = ContentScale.FillBounds
+        playerView?.let {
+            PlayerView(
+                name = name,
+                playerView = it,
+                gameConfig = viewModel.gameConfig,
+                playerViewDimensions = dimensions.playerViewDimensions,
             )
-            dimensions.bettingBoxDimensions.chipSlotBoxes.forEach { slot ->
-                Box(
-                    modifier = Modifier
-                        .align(slot.alignment)
-                        .offset(x = slot.chipSlotOffset.x, y = slot.chipSlotOffset.y)
-                        //.background(Color.Red),
-                            ,
-                    contentAlignment = slot.alignment//Alignment.BottomCenter
-                ) {
-                    (0..2).forEach {
-                        //Logger.info("PlayerBox", Res.allDrawableResources.keys.toString())
-                        Image(
-                            painter = painterResource(Res.allDrawableResources["_100"]!!),
-                            contentDescription = "Chips",
-                            modifier = Modifier
-                                .size(slot.size)
-                                .offset(y = slot.chipSlotOffset.y - (slot.verticalOffsetIncrementPerChip * it)),
-                            contentScale = ContentScale.FillBounds
+            Box(
+                modifier = Modifier.align(dimensions.bettingBoxDimensions.bettingBoxAlignment)
+                    .size(dimensions.bettingBoxDimensions.bettingBoxSize)
+                //.background(Color.Red)
+            ) {
+                if (it.roles.contains(PlayerRole.DEALER)) {
+                    Image(
+                        painter = painterResource(Res.allDrawableResources["dealer_flat"]!!),
+                        contentDescription = "Dealer Button",
+                        modifier = Modifier
+                            .size(dimensions.bettingBoxDimensions.dealerButtonDimensions.size)
+                            .align(dimensions.bettingBoxDimensions.dealerButtonDimensions.alignment)
+                            .offset(
+                                x = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.x,
+                                y = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.y
+                            ),
+                        contentScale = ContentScale.FillBounds
+                    )
+                }
+                it.currentBet?.let {
+                    if (it > BigBlind.ZERO) {
+                        val numChipSlots = viewModel.calculateChipSlotsForPlayer(playerSeat)
+                        val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
+                        val calculatedChipSlots = calculateChipDistribution(
+                            amountToDistribute = it.toDollar(viewModel.gameConfig),
+                            numberOfChipSlots = numChipSlots
                         )
+                        chipSlotDimensions
+                            .take(numChipSlots)
+                            .sortedBy { it.drawingOrder }
+                            .zip(calculatedChipSlots)
+                            .forEach {
+                                val slotDimensions = it.first
+                                val chipsInSlot = it.second
+                                Box(
+                                    modifier = Modifier
+                                        .align(slotDimensions.alignment)
+                                        .offset(x = slotDimensions.chipSlotOffset.x, y = slotDimensions.chipSlotOffset.y)
+                                    //.background(Color.Red),
+                                    ,
+                                    contentAlignment = slotDimensions.alignment//Alignment.BottomCenter
+                                ) {
+                                    chipsInSlot.forEachIndexed { index, chip ->
+                                        Image(
+                                            painter = painterResource(Res.allDrawableResources[chip]!!),
+                                            contentDescription = "Chips",
+                                            modifier = Modifier
+                                                .size(slotDimensions.size)
+                                                .offset(y = slotDimensions.chipSlotOffset.y - (slotDimensions.verticalOffsetIncrementPerChip * index)),
+                                            contentScale = ContentScale.FillBounds
+                                        )
+                                    }
+                                }
+                            }
                     }
                 }
             }
@@ -99,6 +126,7 @@ fun PlayerBox(
 fun PlayerView(
     name: String,
     playerView: PlayerView?,
+    gameConfig: GameConfig,
     playerViewDimensions: PlayerViewDimensions,
     modifier: Modifier = Modifier
 ) {
@@ -115,7 +143,7 @@ fun PlayerView(
             Row(
                 modifier = Modifier
                     .weight(0.45f)
-                    .background(color = Color.Green)
+                    //.background(color = Color.Green)
                     .fillMaxWidth(0.8f),
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center
@@ -160,8 +188,8 @@ fun PlayerView(
                     //.padding(2.dp)
                     //.background(color = Color.Cyan)
                     ,
-                    text = "$222.444.99",
-                    //text = playerView.currentStack.format(),
+                    //text = "$222.444.99",
+                    text = playerView.currentStack.toDollar(gameConfig).format(),
                     maxLines = 1,
                     softWrap = false,
                     autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, maxFontSize),

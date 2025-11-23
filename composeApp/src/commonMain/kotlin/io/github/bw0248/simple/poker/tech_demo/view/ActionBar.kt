@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.bw0248.simple.poker.tech_demo.Dollar
 import io.github.bw0248.spe.BigBlind
 import io.github.bw0248.spe.bigBlind
 
@@ -55,7 +56,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 if (allowedToCheck) viewModel.check(activePlayer.key) else viewModel.call(activePlayer.key)
             },
             prefixText = callText,
-            amount = callAmount
+            amount = callAmount?.toDollar(viewModel.gameConfig)
         )
         ActionButton(
             modifier = Modifier.weight(0.22f),
@@ -67,7 +68,7 @@ fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
                 }
             },
             prefixText = if (allowedToCRaise) "RAISE" else "BET",
-            amount = betSliderPosition.value
+            amount = betSliderPosition.value.toDollar(viewModel.gameConfig)
         )
         Column(
             modifier = Modifier
@@ -165,7 +166,7 @@ private fun BigBlind.round(): BigBlind {
 }
 
 @Composable
-fun ActionButton(modifier: Modifier = Modifier, onClick: () -> Unit, prefixText: String, amount: BigBlind? = null) {
+fun ActionButton(modifier: Modifier = Modifier, onClick: () -> Unit, prefixText: String, amount: Dollar? = null) {
     Column(
         modifier = modifier//Modifier.weight(1f)
             .clickable(onClick = onClick)

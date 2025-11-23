@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,8 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.bw0248.simple.poker.tech_demo.Dollar
 import io.github.bw0248.simple.poker.tech_demo.calculateChipDistribution
+import io.github.bw0248.spe.BigBlind
 import io.github.bw0248.spe.card.Card
 import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardSuit
@@ -75,8 +74,15 @@ fun TableView(
                 ) {
                     val numSlots = 4
                     val initialOffset = -((gameDimensions.chipSize * numSlots) / 2)
-                    val potsize = Dollar.of(123_456.99)
-                    val chipSlots = calculateChipDistribution(potsize, numSlots)
+                    //val potsize = Dollar.of(123_456.99)
+                    val potSize = viewModel.uiState.potView.amount//.toDollar(viewModel.gameConfig)
+
+                    val chipSlots = if (potSize > BigBlind.ZERO) {
+                        calculateChipDistribution(potSize.toDollar(viewModel.gameConfig), numSlots)
+                    } else {
+                        emptyList()
+                    }
+
                     chipSlots.forEachIndexed { slotIndex, slot ->
                        slot.forEachIndexed { chipIndex, chip ->
                            Image(
@@ -86,7 +92,6 @@ fun TableView(
                                    .size(gameDimensions.chipSize)
                                    .offset(x = initialOffset + (gameDimensions.chipSize * slotIndex), y = -((gameDimensions.chipSize * 0.2f) * chipIndex)),
                                contentScale = ContentScale.FillBounds
-
                            )
                        }
                     }
@@ -105,8 +110,8 @@ fun TableView(
                             .background(color = Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
                             .padding(4.dp)
                                 ,
-                        text = "Pot: $123,456.99",
-                        //text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.format()}",
+                        //text = "Pot: $123,456.99",
+                        text = "Pot: ${viewModel.uiState.potView.amountIncludingPlayerBets.toDollar(viewModel.gameConfig).format()}",
                         autoSize = TextAutoSize.StepBased(
                             minFontSize = 6.sp,
                             maxFontSize = tableDimensions.potMaxFontSize.value.toInt().sp
@@ -129,8 +134,8 @@ fun TableView(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 (0..4).map {
-                    BoardCardView(Card(CardSuit.HEARTS, CardValue.QUEEN, CardState.OPEN), Modifier.weight(1f))
-                    //BoardCardView(viewModel.uiState.communityCards.getOrNull(it), Modifier.Companion.weight(1f))
+                    //BoardCardView(Card(CardSuit.HEARTS, CardValue.QUEEN, CardState.OPEN), Modifier.weight(1f))
+                    BoardCardView(viewModel.uiState.communityCards.getOrNull(it), Modifier.Companion.weight(1f))
                 }
             }
         }

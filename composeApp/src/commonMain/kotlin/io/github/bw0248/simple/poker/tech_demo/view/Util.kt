@@ -9,7 +9,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import io.github.bw0248.simple.poker.tech_demo.Dollar
 import io.github.bw0248.spe.BigBlind
+import io.github.bw0248.spe.config.GameConfig
 import java.util.Locale
 
 @Composable
@@ -34,7 +36,7 @@ fun AutoSizeText(
 fun AmountText(
     modifier: Modifier = Modifier,
     prefixText: String,
-    amount: BigBlind?,
+    amount: Dollar?,
     fontSize: TextUnit = 18.sp,
     color: Color = Color.White,
 ) {
@@ -57,3 +59,10 @@ val TextUnit.nonScaledSp
 fun BigBlind?.format(): String {
     return String.format(Locale.US, "$%,.2f", this?.amount ?: BigBlind.of(0).amount)
 }
+
+fun Dollar?.format(): String {
+    return String.format(Locale.US, "$%,.2f", this?.amount ?: Dollar.ZERO.amount)
+}
+
+fun BigBlind.toDollar(gameConfig: GameConfig): Dollar = Dollar
+    .of(this.amount.multiply(gameConfig.deadMoneyConfig.bigBlindAmountInDollar))

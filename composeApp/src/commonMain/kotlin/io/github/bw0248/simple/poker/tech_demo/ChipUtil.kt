@@ -32,15 +32,30 @@ fun calculateChipDistribution(amountToDistribute: Dollar, numberOfChipSlots: Int
     }
 
     val numberOfUsedChips = chipDistribution.values.sum()
-    val chipsPerSlot = numberOfUsedChips / numberOfChipSlots
-    val abc = chipDistribution
+    val minChipsPerSlot = numberOfUsedChips / numberOfChipSlots
+
+    // split chips distribution into 2 parts: First part are chips that can evenly be distributed among required chip slots
+    // second part is the remainder which is distributed over result afterwards
+    val (minDistributed, remainderToDistribute) = chipDistribution
         .flatMap { entry -> (0 until entry.value).map { entry.key } }
         .sortedBy { it.amount }
         .reversed()
         .map { AVAILABLE_CHIPS[it.amount.toDouble()] ?: throw IllegalArgumentException("Chip $it not found") }
-        .chunked(chipsPerSlot)
+        .chunked(minChipsPerSlot)
+        .let { it.take(numberOfChipSlots) to it.drop(numberOfChipSlots) }
 
-    return abc
+    if (remainderToDistribute.size >= numberOfChipSlots) {
+        Logger.error(
+            "ChipUtil", "Remaining chips to distribute is unexpectedly bigger than chip slots to use"
+        )
+    }
+
+    val result = minDistributed.withIndex().associate { it.index to it.value }.toMutableMap()
+    // distribute remainder over result
+    val b  = remainderToDistribute.withIndex().associate { it.index to it.value }
+    b.forEach { result.merge(it.key, it.value) { e1, e2 -> e1.plus(e2) } }
+
+    return result.map { it.value }
 }
 
 private fun canUseChip(

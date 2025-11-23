@@ -20,6 +20,7 @@ import io.github.bw0248.spe.game.PlayerBetCommand
 import io.github.bw0248.spe.game.PlayerCalledCommand
 import io.github.bw0248.spe.game.PlayerCheckedCommand
 import io.github.bw0248.spe.game.PlayerCommand
+import io.github.bw0248.spe.game.PlayerEvent
 import io.github.bw0248.spe.game.PlayerFoldedCommand
 import io.github.bw0248.spe.game.PlayerPostedBigBlind
 import io.github.bw0248.spe.game.PlayerRaiseCommand
@@ -27,15 +28,20 @@ import io.github.bw0248.spe.game.PlayerRaised
 import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
 import io.github.bw0248.spe.player.PlayerView
+import java.math.BigDecimal
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class PokerGameViewModel() : ViewModel() {
     private var game: Game
+    val gameConfig: GameConfig = GameConfig.defaultNoLimitHoldem(
+        smallBlindAmountInDollar = BigDecimal.valueOf(25),
+        bigBlindAmountInDollar = BigDecimal.valueOf(50)
+    )
     private val _uiState = MutablePokerGameState()
     val uiState: PokerGameState = _uiState
     init {
-       game = Game.initializeFromConfig(GameConfig.defaultNoLimitHoldem())
+       game = Game.initializeFromConfig(gameConfig)
            .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.ONE))
            .updatedGame
            .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.TWO))
@@ -96,6 +102,40 @@ class PokerGameViewModel() : ViewModel() {
 
     fun allowedToRaise(playerSeat: PlayerSeat): Boolean {
         return game.view().currentBet != null && game.view().currentBet != BigBlind.ZERO
+    }
+
+    fun calculateChipSlotsForPlayer(playerSeat: PlayerSeat): Int {
+        val eventsInCurrentBettingRound = game.view().recordedHands.lastOrNull()?.recordedBettingRounds?.lastOrNull()
+            ?: return 1
+        val indexOfLastPlayerEvent = eventsInCurrentBettingRound.recordedEvents
+            .indexOfLast { it is PlayerEvent && it.playerSeat == playerSeat }
+
+        val relevantEvents = if (indexOfLastPlayerEvent == -1) {
+            //throw IllegalStateException("No event for player found")
+            eventsInCurrentBettingRound.recordedEvents
+        } else {
+            eventsInCurrentBettingRound.recordedEvents.subList(0, indexOfLastPlayerEvent)
+        }
+
+        //val lastEvent = relevantEvents.last() as PlayerEvent
+        //if (lastEvent.playerSeat != playerSeat) {
+        //    throw IllegalStateException("Last event is not for player")
+        //}
+
+        // @TODO: probably should track current max slots somewhere so when someone calls I just return that number
+        //when (lastEvent) {
+        //    is PlayerChecked ->
+        //    is PlayerCalled,
+        //}
+
+        val betEvents = relevantEvents
+            .filter { it is PlayerRaised || it is PlayerBet || it is PlayerPostedBigBlind }
+        return when (betEvents.size) {
+            0 -> 1
+            1 -> 2
+            2 -> 3
+            else -> 4
+        }
     }
 
     private fun updateWithCommand(command: PlayerCommand) {

@@ -36,6 +36,9 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation("org.junit.jupiter:junit-jupiter-api:6.1.0-M1")
+            implementation("org.junit.jupiter:junit-jupiter-engine:6.1.0-M1")
+            implementation("org.junit.jupiter:junit-jupiter-params:6.1.0-M1")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
