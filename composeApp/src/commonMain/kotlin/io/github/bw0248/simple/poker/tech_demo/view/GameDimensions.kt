@@ -16,7 +16,7 @@ data class GameDimensions(
     companion object {
         fun init(maxWidth: Dp, maxHeight: Dp): GameDimensions {
             val dealerButtonSize = maxWidth * 0.03f
-            val chipSize = dealerButtonSize * 0.75f
+            val chipSize = dealerButtonSize * 0.9f
             val tableDimensions = TableDimensions.fromParentContainerDimensions(width = maxWidth, height = maxHeight)
             val playerDimensions = PlayerDimension.calculateFor6MaxGame(
                 maxWidth = maxWidth,

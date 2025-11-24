@@ -9,11 +9,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import io.github.bw0248.spe.card.Card
+import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardState.FOLDED
 import io.github.bw0248.spe.card.CardState.HIDDEN
 import org.jetbrains.compose.resources.DrawableResource
@@ -31,7 +33,9 @@ fun HoleCardView(card: Card, modifier: Modifier = Modifier) {
     }
     androidx.compose.material3.Card(
         modifier = modifier
-            .aspectRatio(aspectRatio),
+            .aspectRatio(aspectRatio)
+            .alpha(if (card.cardState == FOLDED) 0.3f else 1.0f)
+        ,
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RectangleShape,
         elevation = CardDefaults.cardElevation(4.dp)

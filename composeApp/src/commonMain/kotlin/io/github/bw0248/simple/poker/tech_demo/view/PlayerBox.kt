@@ -79,16 +79,14 @@ fun PlayerBox(
                         contentScale = ContentScale.FillBounds
                     )
                 }
-                it.currentBet?.let {
-                    if (it > BigBlind.ZERO) {
-                        val numChipSlots = viewModel.calculateChipSlotsForPlayer(playerSeat)
-                        val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
-                        val calculatedChipSlots = calculateChipDistribution(
-                            amountToDistribute = it.toDollar(viewModel.gameConfig),
-                            numberOfChipSlots = numChipSlots
-                        )
+                //it.currentBet?.let {
+                //    if (it > BigBlind.ZERO) {
+                val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
+                val calculatedChipSlots = viewModel.calculateChipsToRenderForPlayer(playerSeat)
+                        //val numChipSlots = viewModel.calculateChipSlotsForPlayer(playerSeat)
+                        //val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
                         chipSlotDimensions
-                            .take(numChipSlots)
+                            .take(calculatedChipSlots.size)
                             .sortedBy { it.drawingOrder }
                             .zip(calculatedChipSlots)
                             .forEach {
@@ -114,8 +112,8 @@ fun PlayerBox(
                                     }
                                 }
                             }
-                    }
-                }
+                 //   }
+                //}
             }
         }
     }
