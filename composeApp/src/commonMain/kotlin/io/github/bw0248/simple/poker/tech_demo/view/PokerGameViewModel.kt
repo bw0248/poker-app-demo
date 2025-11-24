@@ -63,12 +63,12 @@ class PokerGameViewModel() : ViewModel() {
            .updatedGame
            .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.THREE))
            .updatedGame
-           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FOUR))
-           .updatedGame
-           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FIVE))
-           .updatedGame
-           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.SIX))
-           .updatedGame
+           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FOUR))
+           //.updatedGame
+           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FIVE))
+           //.updatedGame
+           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.SIX))
+           //.updatedGame
         currentGameView = game.view()
         _uiState.update(game.view())
     }
@@ -137,7 +137,12 @@ class PokerGameViewModel() : ViewModel() {
 
     private fun calculateChipSlotsForPlayer(
         playerSeat: PlayerSeat,
-        eventsToConsider: List<GameEvent>? = currentGameView.recordedHands.lastOrNull()?.recordedBettingRounds?.lastOrNull()?.recordedEvents
+        eventsToConsider: List<GameEvent>? = currentGameView
+            .recordedHands
+            .lastOrNull()
+            ?.recordedBettingRounds
+            ?.getOrNull(currentGameView.currentBettingRoundIndex)
+            ?.recordedEvents
     ): Int {
         val eventsInCurrentBettingRound = eventsToConsider ?: return 1
 
@@ -171,8 +176,7 @@ class PokerGameViewModel() : ViewModel() {
             is PlayerCalled -> relevantRecordedEvents
                 .indexOfLast { it is PlayerRaised || it is PlayerBet || it is PlayerPostedBigBlind || it is PlayerPostedSmallBlind }
                 .let { relevantRecordedEvents.subList(0, it + 1) }
-                .let { l -> (l.last() as PlayerEvent).let { calculateChipSlotsForPlayer(it.playerSeat, l) } }
-                //.let { calculateChipSlotsForPlayer((it as PlayerEvent).playerSeat) }
+                .let { l -> calculateChipSlotsForPlayer((l.last() as PlayerEvent).playerSeat, l) }
             // should probably only happen when BB checks after SB complete
             // otherwise checking is only possible when there is no bet at all and thus this method should not be called
             is PlayerChecked -> 1
@@ -180,8 +184,6 @@ class PokerGameViewModel() : ViewModel() {
             is PlayerFolded -> relevantRecordedEvents
                 .subList(0, indexOfLastPlayerEvent)
                 .let { calculateChipSlotsForPlayer(playerSeat, it) }
-                //.indexOfLast { it is PlayerEvent && it.playerSeat == playerSeat }
-                //.let { calculateChipSlotsForPlayer((it as PlayerEvent).playerSeat, eventsToConsider = ) }
 
             // last bet/raise/blind event + 1 (increment happens by including current raise of player)
             is PlayerRaised -> minOf(
