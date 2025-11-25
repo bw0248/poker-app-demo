@@ -22,9 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.bw0248.simple.poker.tech_demo.calculateChipDistribution
+import io.github.bw0248.simple.poker.tech_demo.Logger
 import io.github.bw0248.spe.BigBlind
 import io.github.bw0248.spe.config.GameConfig
 import io.github.bw0248.spe.player.PlayerRole
@@ -62,55 +63,113 @@ fun PlayerBox(
                 gameConfig = viewModel.gameConfig,
                 playerViewDimensions = dimensions.playerViewDimensions,
             )
-            Box(
-                modifier = Modifier.align(dimensions.bettingBoxDimensions.bettingBoxAlignment)
-                    .size(dimensions.bettingBoxDimensions.bettingBoxSize)
-                //.background(Color.Red)
-            ) {
-                if (it.roles.contains(PlayerRole.DEALER)) {
-                    Image(
-                        painter = painterResource(Res.allDrawableResources["dealer_flat"]!!),
-                        contentDescription = "Dealer Button",
-                        modifier = Modifier
-                            .size(dimensions.bettingBoxDimensions.dealerButtonDimensions.size)
-                            .align(dimensions.bettingBoxDimensions.dealerButtonDimensions.alignment)
-                            .offset(
-                                x = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.x,
-                                y = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.y
-                            ),
-                        contentScale = ContentScale.FillBounds
-                    )
-                }
-                val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
-                val calculatedChipSlots = viewModel.calculateChipsToRenderForPlayer(playerSeat)
-                chipSlotDimensions
-                    .take(calculatedChipSlots.size)
-                    .sortedBy { it.drawingOrder }
-                    .zip(calculatedChipSlots)
-                    .forEach {
-                        val slotDimensions = it.first
-                        val chipsInSlot = it.second
-                        Box(
+                Box(
+                    modifier = Modifier.align(dimensions.bettingBoxDimensions.bettingBoxAlignment)
+                        .size(dimensions.bettingBoxDimensions.bettingBoxSize)
+                    //.background(Color.Red)
+                ) {
+                    if (it.roles.contains(PlayerRole.DEALER)) {
+                        Image(
+                            painter = painterResource(Res.allDrawableResources["dealer_flat"]!!),
+                            contentDescription = "Dealer Button",
                             modifier = Modifier
-                                .align(slotDimensions.alignment)
-                                .offset(x = slotDimensions.chipSlotOffset.x, y = slotDimensions.chipSlotOffset.y)
-                            //.background(Color.Red),
-                            ,
-                            contentAlignment = slotDimensions.alignment//Alignment.BottomCenter
-                        ) {
-                            chipsInSlot.forEachIndexed { index, chip ->
-                                Image(
-                                    painter = painterResource(Res.allDrawableResources[chip]!!),
-                                    contentDescription = "Chips",
-                                    modifier = Modifier
-                                        .size(slotDimensions.size)
-                                        .offset(y = slotDimensions.chipSlotOffset.y - (slotDimensions.verticalOffsetIncrementPerChip * index)),
-                                    contentScale = ContentScale.FillBounds
-                                )
+                                .size(dimensions.bettingBoxDimensions.dealerButtonDimensions.size)
+                                .align(dimensions.bettingBoxDimensions.dealerButtonDimensions.alignment)
+                                .offset(
+                                    x = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.x,
+                                    y = dimensions.bettingBoxDimensions.dealerButtonDimensions.offset.y
+                                ),
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+                    val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
+                    val calculatedChipSlots = viewModel.calculateChipsToRenderForPlayer(playerSeat)
+                    val chipSlotsToBeUsed = chipSlotDimensions
+                        .take(calculatedChipSlots.size)
+                        .sortedBy { it.drawingOrder }
+                    chipSlotsToBeUsed
+                        .zip(calculatedChipSlots)
+                        .forEach {
+                            val slotDimensions = it.first
+                            val chipsInSlot = it.second
+                            Box(
+                                modifier = Modifier
+                                    .align(slotDimensions.alignment)
+                                    .offset(x = slotDimensions.chipSlotOffset.x, y = slotDimensions.chipSlotOffset.y)
+                                //.border(2.dp, Color.Yellow)
+                                //.background(Color.Red),
+                                ,
+                                contentAlignment = slotDimensions.alignment//Alignment.BottomCenter
+                            ) {
+                                chipsInSlot.forEachIndexed { index, chip ->
+                                    Image(
+                                        painter = painterResource(Res.allDrawableResources[chip]!!),
+                                        contentDescription = "Chips",
+                                        modifier = Modifier
+                                            .size(slotDimensions.size)
+                                            .offset(y = slotDimensions.chipSlotOffset.y - (slotDimensions.verticalOffsetIncrementPerChip * index)),
+                                        contentScale = ContentScale.FillBounds
+                                    )
+                                }
                             }
                         }
+                    playerView.currentBet?.let {
+                        if (playerView.currentBet != BigBlind.ZERO) {
+                            val slotAlignment = chipSlotsToBeUsed.first().alignment
+                            val bottomChipBettingTextRef: DpOffset =
+                                chipSlotsToBeUsed
+                                    //chipSlotDimensions.sortedBy { it.drawingOrder }
+                                    .zip(calculatedChipSlots)
+                                    .last()
+                                    .let { (slotDim, chips) ->
+                                        val lastChipVerticalOffset =
+                                            (slotDim.verticalOffsetIncrementPerChip * (chips.size - 1)) //+ (slotDim.size * 1.5f)
+                                        DpOffset(
+                                            x = slotDim.chipSlotOffset.x,
+                                            //y = slotDim.chipSlotOffset.y - lastChipVerticalOffset + (slotDim.size * 2.0f)
+                                            y = slotDim.chipSlotOffset.y
+                                        )
+                                    }
+                            val topChipBettingTextRef =
+                                chipSlotsToBeUsed
+                                    .zip(calculatedChipSlots)
+                                    .first()
+                                    .let { (slotDim, chips) ->
+                                        val lastChipVerticalOffset =
+                                            (slotDim.verticalOffsetIncrementPerChip * chips.size) + (slotDim.size * 0.5f)
+                                        DpOffset(
+                                            x = slotDim.chipSlotOffset.x,
+                                            y = slotDim.chipSlotOffset.y - lastChipVerticalOffset
+                                        )
+                                        //DpOffset(x = slotDim.chipSlotOffset.x, y = slotDim.chipSlotOffset.y)
+                                    }
+                            val chipSlotReferenceForBettingText = when (playerSeat) {
+                                PlayerSeat.ONE, PlayerSeat.TWO -> slotAlignment to topChipBettingTextRef
+                                PlayerSeat.FOUR, PlayerSeat.FIVE -> Alignment.BottomCenter to DpOffset(0.dp, 0.dp)
+                                PlayerSeat.THREE, PlayerSeat.SIX -> slotAlignment to bottomChipBettingTextRef
+                                else -> Alignment.BottomCenter to DpOffset(0.dp, 0.dp)
+                            }
+                            AutoSizeText(
+                                Modifier
+                                    .align(chipSlotReferenceForBettingText.first)
+                                    //.offset(x = bettingTextRef.x, y = bettingTextRef.y)
+                                    .offset(
+                                        x = chipSlotReferenceForBettingText.second.x,
+                                        y = chipSlotReferenceForBettingText.second.y
+                                    )
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                //.border(2.dp, Color.Yellow)
+                                ,
+                                maxFontSize = 20.sp,
+                                //text = "$123_456.99",
+                                text = it.toDollar(viewModel.gameConfig).format()
+                            )
+                        }
                     }
-            }
+                }
         }
     }
 }

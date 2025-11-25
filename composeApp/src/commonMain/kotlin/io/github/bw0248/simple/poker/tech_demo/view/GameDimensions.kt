@@ -178,6 +178,10 @@ data class PlayerDimension(
                                     chipSize,
                                     maxWidth = maxWidth,
                                     maxHeight = maxHeight
+                                ),
+                                BetAmountTextDimensions(
+                                    alignment = Alignment.CenterEnd,
+                                    offset = DpOffset(0.dp, 0.dp)
                                 )
                             )
                         )
@@ -212,6 +216,10 @@ data class PlayerDimension(
                                     chipSize,
                                     maxWidth = maxWidth,
                                     maxHeight = maxHeight
+                                ),
+                                BetAmountTextDimensions(
+                                    alignment = Alignment.CenterStart,
+                                    offset = DpOffset(0.dp, 0.dp)
                                 )
                             )
                         )
@@ -246,6 +254,10 @@ data class PlayerDimension(
                                     chipSize,
                                     maxWidth = maxWidth,
                                     maxHeight = maxHeight
+                                ),
+                                BetAmountTextDimensions(
+                                    alignment = Alignment.BottomCenter,
+                                    offset = DpOffset(0.dp, 0.dp)
                                 )
                             )
                         )
@@ -277,6 +289,10 @@ data class PlayerDimension(
                                     chipSize,
                                     maxWidth = maxWidth,
                                     maxHeight = maxHeight
+                                ),
+                                BetAmountTextDimensions(
+                                    alignment = Alignment.BottomCenter,
+                                    offset = DpOffset(0.dp, 0.dp)
                                 )
                             )
                         )
@@ -308,6 +324,10 @@ data class PlayerDimension(
                                     chipSize,
                                     maxWidth = maxWidth,
                                     maxHeight = maxHeight
+                                ),
+                                BetAmountTextDimensions(
+                                    alignment = Alignment.BottomCenter,
+                                    offset = DpOffset(0.dp, 0.dp)
                                 )
                             )
                         )
@@ -342,6 +362,10 @@ data class PlayerDimension(
                                     chipSize = chipSize,
                                     maxWidth = maxWidth,
                                     maxHeight = maxHeight
+                                ),
+                                BetAmountTextDimensions(
+                                    alignment = Alignment.TopCenter,
+                                    offset = DpOffset(maxWidth * 0.05f, 0.dp)
                                 )
                             )
                         )
@@ -376,6 +400,12 @@ data class BettingBoxDimensions(
     val bettingBoxAlignment: Alignment,
     val dealerButtonDimensions: DealerButtonDimensions,
     val chipSlotBoxes: List<ChipSlotBox>,
+    val betAmountTextDimensions: BetAmountTextDimensions
+)
+
+data class BetAmountTextDimensions(
+    val alignment: Alignment,
+    val offset: DpOffset
 )
 
 data class ChipSlotBox(
@@ -395,7 +425,7 @@ data class ChipSlotBox(
             // scenarios outer slots are being used to render chips
             val chipSlotPriority = listOf(3, 2, 4, 1)
             val verticalIncrementPerChip = chipSize * 0.2f
-            val bottomCenterPlayerChipSlotBoxOffsets: List<ChipSlotBox> = (0 until numChipSlots - 1)
+            val bottomLeftCenterPlayerChipSlotBoxOffsets: List<ChipSlotBox> = (0 until numChipSlots - 1)
                 .runningFold(DpOffset(x = maxWidth * 0.05f, y = -(maxHeight * 0.01f))) {
                         acc: DpOffset, i: Int -> DpOffset(x = acc.x + chipSize, y = acc.y)
                 }.mapIndexed { idx, value ->
@@ -407,10 +437,12 @@ data class ChipSlotBox(
                         drawingOrder = idx
                     )
                 }.let { slots -> chipSlotPriority.map { slots[it - 1] } }
+            val bottomRightCenterPlayerChipSlotBoxOffsets: List<ChipSlotBox> = bottomLeftCenterPlayerChipSlotBoxOffsets
+                .map { it.copy(alignment = Alignment.BottomEnd, chipSlotOffset = it.chipSlotOffset.copy (it.chipSlotOffset.x * -1)) }
 
             val bottomRightOutsidePlayerChipSlotBoxOffsets = (0 until numChipSlots - 1)
-                .runningFold(DpOffset(x = 0.dp, y = chipSize * 0.2f)) { acc: DpOffset, i: Int ->
-                    DpOffset(x = acc.x - (chipSize * 0.5f), y = acc.y + (chipSize / 2))
+                .runningFold(DpOffset(x = chipSize * 0.5f, y = chipSize * 0.1f)) { acc: DpOffset, i: Int ->
+                    DpOffset(x = acc.x - (chipSize * 0.33f), y = acc.y + (chipSize * 0.33f))
                 }.mapIndexed { idx, value ->
                     ChipSlotBox(
                         size = chipSize,
@@ -424,8 +456,9 @@ data class ChipSlotBox(
                 .map { it.copy(chipSlotOffset = it.chipSlotOffset.copy(x = it.chipSlotOffset.x * -1)) }
 
             val topRightPlayerChipSloBoxOffsets = (0 until numChipSlots - 1)
-                .runningFold(DpOffset(x = -(chipSize * 0.25f), y = chipSize * 0.75f)) { acc: DpOffset, i: Int ->
-                    DpOffset(x = acc.x - (chipSize * 0.5f), y = acc.y - (chipSize / 2))
+                //.runningFold(DpOffset(x = -(chipSize * 0.25f), y = chipSize * 0.75f)) { acc: DpOffset, i: Int ->
+                .runningFold(DpOffset(x = (chipSize * 0.5f), y = chipSize * 0.75f)) { acc: DpOffset, i: Int ->
+                    DpOffset(x = acc.x - (chipSize * 0.5f), y = acc.y - (chipSize * 0.25f))
                 }
                 // chip slots for top players need to be reversed to make sure they are rendered top to bottom
                 // in order for lower chip stack to be drawn over/in front of higher chip stack
@@ -446,8 +479,8 @@ data class ChipSlotBox(
                 PlayerSeat.ONE -> topLeftPlayerChipSlotBoxOffsets
                 PlayerSeat.TWO -> topRightPlayerChipSloBoxOffsets
                 PlayerSeat.THREE -> bottomRightOutsidePlayerChipSlotBoxOffsets
-                PlayerSeat.FOUR -> bottomCenterPlayerChipSlotBoxOffsets
-                PlayerSeat.FIVE -> bottomCenterPlayerChipSlotBoxOffsets
+                PlayerSeat.FOUR -> bottomRightCenterPlayerChipSlotBoxOffsets
+                PlayerSeat.FIVE -> bottomLeftCenterPlayerChipSlotBoxOffsets
                 PlayerSeat.SIX -> bottomLeftOutsidePlayerChipSlotBoxOffsets
                 PlayerSeat.SEVEN -> TODO()
                 PlayerSeat.EIGHT -> TODO()
@@ -465,8 +498,8 @@ data class DealerButtonDimensions(
 ) {
     companion object {
         fun forSeat(playerSeat: PlayerSeat, dealerButtonSize: Dp, screenWidth: Dp, screenHeight: Dp): DealerButtonDimensions {
-            val topOutsidePlayerDealerButtonOffset = DpOffset(x = screenWidth * 0.01f, y = 0.dp)
-            val bottomOutsidePlayerOffset = DpOffset(x = screenWidth * 0.01f, y = -(screenHeight * 0.1f))
+            val topOutsidePlayerDealerButtonOffset = DpOffset(x = screenWidth * 0.01f, y = -(screenHeight * 0.05f))
+            val bottomOutsidePlayerOffset = DpOffset(x = -(screenWidth * 0.015f), y = -(screenHeight * 0.2f))
             val centerPlayerDealerButtonOffset = DpOffset(x = screenWidth * 0.025f, y = screenHeight * 0.15f)
             return when (playerSeat) {
                 PlayerSeat.ONE -> DealerButtonDimensions(

@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.bw0248.simple.poker.tech_demo.Dollar
 import io.github.bw0248.simple.poker.tech_demo.Logger
 import io.github.bw0248.simple.poker.tech_demo.calculateChipDistribution
 import io.github.bw0248.spe.BigBlind
@@ -60,16 +61,16 @@ class PokerGameViewModel() : ViewModel() {
        game = Game.initializeFromConfig(gameConfig)
            .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.SIX))
            .updatedGame
-           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.ONE))
-           //.updatedGame
-           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.TWO))
-           //.updatedGame
            .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.THREE))
            .updatedGame
-           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FOUR))
-           //.updatedGame
-           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FIVE))
-           //.updatedGame
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.ONE))
+           .updatedGame
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.TWO))
+           .updatedGame
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FOUR))
+           .updatedGame
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FIVE))
+           .updatedGame
         currentGameView = game.view()
         _uiState.update(game.view())
     }
@@ -124,6 +125,7 @@ class PokerGameViewModel() : ViewModel() {
     }
 
     fun calculateChipsToRenderForPlayer(playerSeat: PlayerSeat): List<List<String>> {
+        //return calculateChipDistribution(Dollar.of(123_456.99), 4)
         val playerView = currentGameView.playerViews[playerSeat]
         val currentBet = playerView?.currentBet
         if (currentBet == null || currentBet == BigBlind.ZERO) {
