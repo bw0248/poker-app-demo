@@ -56,7 +56,9 @@ fun PlayerBox(
         playerView?.let {
             PlayerView(
                 name = name,
+                viewModel = viewModel,
                 playerView = it,
+                playerSeat = playerSeat,
                 gameConfig = viewModel.gameConfig,
                 playerViewDimensions = dimensions.playerViewDimensions,
             )
@@ -79,41 +81,35 @@ fun PlayerBox(
                         contentScale = ContentScale.FillBounds
                     )
                 }
-                //it.currentBet?.let {
-                //    if (it > BigBlind.ZERO) {
                 val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
                 val calculatedChipSlots = viewModel.calculateChipsToRenderForPlayer(playerSeat)
-                        //val numChipSlots = viewModel.calculateChipSlotsForPlayer(playerSeat)
-                        //val chipSlotDimensions = dimensions.bettingBoxDimensions.chipSlotBoxes
-                        chipSlotDimensions
-                            .take(calculatedChipSlots.size)
-                            .sortedBy { it.drawingOrder }
-                            .zip(calculatedChipSlots)
-                            .forEach {
-                                val slotDimensions = it.first
-                                val chipsInSlot = it.second
-                                Box(
+                chipSlotDimensions
+                    .take(calculatedChipSlots.size)
+                    .sortedBy { it.drawingOrder }
+                    .zip(calculatedChipSlots)
+                    .forEach {
+                        val slotDimensions = it.first
+                        val chipsInSlot = it.second
+                        Box(
+                            modifier = Modifier
+                                .align(slotDimensions.alignment)
+                                .offset(x = slotDimensions.chipSlotOffset.x, y = slotDimensions.chipSlotOffset.y)
+                            //.background(Color.Red),
+                            ,
+                            contentAlignment = slotDimensions.alignment//Alignment.BottomCenter
+                        ) {
+                            chipsInSlot.forEachIndexed { index, chip ->
+                                Image(
+                                    painter = painterResource(Res.allDrawableResources[chip]!!),
+                                    contentDescription = "Chips",
                                     modifier = Modifier
-                                        .align(slotDimensions.alignment)
-                                        .offset(x = slotDimensions.chipSlotOffset.x, y = slotDimensions.chipSlotOffset.y)
-                                    //.background(Color.Red),
-                                    ,
-                                    contentAlignment = slotDimensions.alignment//Alignment.BottomCenter
-                                ) {
-                                    chipsInSlot.forEachIndexed { index, chip ->
-                                        Image(
-                                            painter = painterResource(Res.allDrawableResources[chip]!!),
-                                            contentDescription = "Chips",
-                                            modifier = Modifier
-                                                .size(slotDimensions.size)
-                                                .offset(y = slotDimensions.chipSlotOffset.y - (slotDimensions.verticalOffsetIncrementPerChip * index)),
-                                            contentScale = ContentScale.FillBounds
-                                        )
-                                    }
-                                }
+                                        .size(slotDimensions.size)
+                                        .offset(y = slotDimensions.chipSlotOffset.y - (slotDimensions.verticalOffsetIncrementPerChip * index)),
+                                    contentScale = ContentScale.FillBounds
+                                )
                             }
-                 //   }
-                //}
+                        }
+                    }
             }
         }
     }
@@ -123,6 +119,8 @@ fun PlayerBox(
 @Preview
 fun PlayerView(
     name: String,
+    viewModel: PokerGameViewModel,
+    playerSeat: PlayerSeat,
     playerView: PlayerView?,
     gameConfig: GameConfig,
     playerViewDimensions: PlayerViewDimensions,
@@ -147,7 +145,7 @@ fun PlayerView(
                 horizontalArrangement = Arrangement.Center
             ) {
                 it.holeCards.map { card ->
-                    HoleCardView(card, modifier = Modifier.weight(1f))
+                    HoleCardView(card, isHero = viewModel.isHero(playerSeat), modifier = Modifier.weight(1f))
                     //HoleCardView(Card(CardSuit.SPADES, CardValue.ACE, CardState.OPEN), modifier = Modifier.weight(1f))
                     //HoleCardView(Card(CardSuit.SPADES, CardValue.ACE, CardState.HIDDEN), modifier = Modifier.weight(1f))
                 }

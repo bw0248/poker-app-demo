@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import io.github.bw0248.spe.card.Card
-import io.github.bw0248.spe.card.CardState
 import io.github.bw0248.spe.card.CardState.FOLDED
 import io.github.bw0248.spe.card.CardState.HIDDEN
 import org.jetbrains.compose.resources.DrawableResource
@@ -25,9 +24,9 @@ import tech_demo.composeapp.generated.resources.allDrawableResources
 
 
 @Composable
-fun HoleCardView(card: Card, modifier: Modifier = Modifier) {
+fun HoleCardView(card: Card, isHero: Boolean, modifier: Modifier = Modifier) {
     val (aspectRatio, resource) = if (card.cardState in setOf(HIDDEN, FOLDED)) {
-        1.33f to resolveHalfCardBack()
+        1.33f to if (isHero) resolveHalfCard(card) else resolveHalfCardBack()
     } else {
         0.66f to resolveFullCard(card)
     }
@@ -70,6 +69,10 @@ fun BoardCardView(card: Card?, modifier: Modifier = Modifier) {
             .aspectRatio(0.666f)
         //.background(color = Color.Red)
     ) {}
+}
+
+private fun resolveHalfCard(card: Card): DrawableResource {
+    return loadResource("${cardToPath(card)}_half")
 }
 
 private fun resolveHalfCardBack(): DrawableResource {

@@ -49,6 +49,7 @@ class PokerGameViewModel() : ViewModel() {
         smallBlindAmountInDollar = BigDecimal.valueOf(25),
         bigBlindAmountInDollar = BigDecimal.valueOf(50)
     )
+    val heroSeat = PlayerSeat.SIX
     private val _uiState = MutablePokerGameState()
     val uiState: PokerGameState = _uiState
 
@@ -57,17 +58,17 @@ class PokerGameViewModel() : ViewModel() {
 
     init {
        game = Game.initializeFromConfig(gameConfig)
-           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.ONE))
+           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.SIX))
            .updatedGame
-           .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.TWO))
-           .updatedGame
+           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.ONE))
+           //.updatedGame
+           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.TWO))
+           //.updatedGame
            .processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.THREE))
            .updatedGame
            //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FOUR))
            //.updatedGame
            //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FIVE))
-           //.updatedGame
-           //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.SIX))
            //.updatedGame
         currentGameView = game.view()
         _uiState.update(game.view())
@@ -76,6 +77,8 @@ class PokerGameViewModel() : ViewModel() {
     fun getActivePlayer(): Map.Entry<PlayerSeat, PlayerView>? {
         return _uiState.playerViews.entries.firstOrNull { it.value.playerStatus == PlayerStatus.NEXT_TO_ACT }
     }
+
+    fun isHero(playerSeat: PlayerSeat): Boolean = playerSeat == heroSeat
 
     fun joinGame(playerSeat: PlayerSeat, buyIn: BigBlind) = updateWithCommand(JoinCommand(buyIn, playerSeat))
     fun fold(playerSeat: PlayerSeat) = updateWithCommand(PlayerFoldedCommand(playerSeat))
