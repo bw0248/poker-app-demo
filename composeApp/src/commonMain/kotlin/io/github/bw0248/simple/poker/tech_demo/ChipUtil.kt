@@ -1,5 +1,18 @@
 package io.github.bw0248.simple.poker.tech_demo
 
+import io.github.bw0248.simple.poker.tech_demo.view.PokerGameViewModel
+import io.github.bw0248.simple.poker.tech_demo.view.toDollar
+import io.github.bw0248.spe.BigBlind
+import io.github.bw0248.spe.game.GameEvent
+import io.github.bw0248.spe.game.PlayerBet
+import io.github.bw0248.spe.game.PlayerCalled
+import io.github.bw0248.spe.game.PlayerChecked
+import io.github.bw0248.spe.game.PlayerEvent
+import io.github.bw0248.spe.game.PlayerFolded
+import io.github.bw0248.spe.game.PlayerPostedBigBlind
+import io.github.bw0248.spe.game.PlayerPostedSmallBlind
+import io.github.bw0248.spe.game.PlayerRaised
+import io.github.bw0248.spe.player.PlayerSeat
 import java.math.BigDecimal
 
 val AVAILABLE_CHIPS: Map<Double, String> = mapOf(
@@ -81,4 +94,82 @@ private fun canUseChip(
     val remainder = amountStillToDistribute.subtract(currentChipValue)
     val minimumRequiredRemainder = BigDecimal(stillNeededChips) * BigDecimal(AVAILABLE_CHIPS.keys.minOf { it })
     return remainder.amount >= minimumRequiredRemainder
+}
+
+fun calculateChipsToRenderForBet(
+    playerSeat: PlayerSeat,
+    currentBet: Dollar?,
+    playerEventsInBettingRound: List<GameEvent>
+): List<List<String>> {
+    if (currentBet == null || currentBet == Dollar.ZERO) {
+        return emptyList()
+    }
+
+    val chipSlots = calculateChipSlotsForPlayer(playerSeat, playerEventsInBettingRound)
+    val calculatedChipSlots = calculateChipDistribution(
+        amountToDistribute = currentBet,
+        numberOfChipSlots = chipSlots
+    )
+
+    return calculatedChipSlots
+}
+
+fun calculateChipSlotsForPlayer(
+    playerSeat: PlayerSeat,
+    eventsToConsider: List<GameEvent>?
+        //pokerGameViewModel.currentGameView
+        //.recordedHands
+        //.lastOrNull()
+        //?.recordedBettingRounds
+        //?.getOrNull(pokerGameViewModel.currentGameView.currentBettingRoundIndex)
+        //?.recordedEvents
+): Int {
+    val eventsInCurrentBettingRound = eventsToConsider ?: return 1
+
+    val relevantEvents = setOf(
+        PlayerPostedSmallBlind::class,
+        PlayerPostedBigBlind::class,
+        PlayerBet::class,
+        PlayerCalled::class,
+        PlayerChecked::class,
+        PlayerFolded::class,
+        PlayerRaised::class,
+    )
+    val indexOfLastPlayerEvent = eventsInCurrentBettingRound
+        .indexOfLast { it is PlayerEvent && it.playerSeat == playerSeat && it::class in relevantEvents }
+
+    if (indexOfLastPlayerEvent == -1) {
+        throw IllegalStateException("No event found for player in seat $playerSeat")
+    }
+
+    val relevantRecordedEvents = eventsInCurrentBettingRound.subList(0, indexOfLastPlayerEvent + 1)
+    val lastPlayerAction = relevantRecordedEvents.last() as PlayerEvent
+    if (lastPlayerAction.playerSeat != playerSeat) {
+        throw IllegalStateException("Last event is not for player")
+    }
+
+    return when (lastPlayerAction) {
+        is PlayerPostedSmallBlind -> 1
+        is PlayerPostedBigBlind -> 1
+        is PlayerBet -> 1
+        // should match num slots of last bet/raise/blind event
+        is PlayerCalled -> relevantRecordedEvents
+            .indexOfLast { it is PlayerRaised || it is PlayerBet || it is PlayerPostedBigBlind || it is PlayerPostedSmallBlind }
+            .let { relevantRecordedEvents.subList(0, it + 1) }
+            .let { l -> calculateChipSlotsForPlayer((l.last() as PlayerEvent).playerSeat, l) }
+        // should probably only happen when BB checks after SB complete
+        // otherwise checking is only possible when there is no bet at all and thus this method should not be called
+        is PlayerChecked -> 1
+        // should match last slots of player event
+        is PlayerFolded -> relevantRecordedEvents
+            .subList(0, indexOfLastPlayerEvent)
+            .let { calculateChipSlotsForPlayer(playerSeat, it) }
+
+        // last bet/raise/blind event + 1 (increment happens by including current raise of player)
+        is PlayerRaised -> minOf(
+            4,
+            relevantRecordedEvents.filter { it is PlayerRaised || it is PlayerBet || it is PlayerPostedBigBlind }.size
+        )
+        else -> throw IllegalStateException()
+    }
 }

@@ -43,6 +43,8 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
+            implementation("org.slf4j:slf4j-simple:2.0.3")
         }
     }
 }

@@ -20,139 +20,163 @@ import androidx.compose.ui.unit.sp
 import io.github.bw0248.simple.poker.tech_demo.Dollar
 import io.github.bw0248.spe.BigBlind
 import io.github.bw0248.spe.bigBlind
+import io.github.bw0248.spe.player.PlayerSeat
+import io.github.bw0248.spe.player.PlayerView
 
 val BUTTON_COLOR = Color(0xFF800000)
 
 @Composable
-fun ActionBar(viewModel: PokerGameViewModel, modifier: Modifier = Modifier) {
+fun ActionBar(
+    gameState: PokerGameState,
+    activePlayer: Map.Entry<PlayerSeat, PlayerView>?,
+    currentBet: BigBlind?,
+    //activePlayerSeat: PlayerSeat?,
+    viewModel: PokerGameViewModel,
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier
             .fillMaxSize()
-            //.fillMaxWidth()
-            //.background(color = Color.Blue)
-            //.border(2.dp, color = Color.Red)
-            //.padding(8.dp),
-                ,
+        //.fillMaxWidth()
+        //.background(color = Color.Blue)
+        //.border(2.dp, color = Color.Red)
+        //.padding(8.dp),
+        ,
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val activePlayer = viewModel.getActivePlayer() ?: return
-        val minBet = viewModel.calculateMinRaise()
-            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
-        val maxBet = activePlayer.value.currentStack.plus(activePlayer.value.currentBet)
-            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
-        val allowedToCheck = viewModel.allowedToCheck(activePlayer.key)
-        val allowedToCRaise = viewModel.allowedToRaise(activePlayer.key)
-        val betSliderPosition = remember { mutableStateOf(minBet) }
-        ActionButton(
-            modifier = Modifier.weight(0.22f),
-            onClick = { viewModel.fold(activePlayer.key) },
-            prefixText = "FOLD",
-        )
-        val (callText, callAmount) = if (allowedToCheck) "CHECK" to null else "CALL" to viewModel.uiState.currentBet?.minOf(activePlayer.value.currentStack)
-        ActionButton(
-            modifier = Modifier.weight(0.22f),
-            onClick = {
-                if (allowedToCheck) viewModel.check(activePlayer.key) else viewModel.call(activePlayer.key)
-            },
-            prefixText = callText,
-            amount = callAmount?.toDollar(viewModel.gameConfig)
-        )
-        ActionButton(
-            modifier = Modifier.weight(0.22f),
-            onClick = {
-                if (allowedToCRaise) {
-                    viewModel.raise(activePlayer.key, betSliderPosition.value)
-                } else {
-                    viewModel.bet(activePlayer.key, betSliderPosition.value)
-                }
-            },
-            prefixText = if (allowedToCRaise) "RAISE" else "BET",
-            amount = betSliderPosition.value.toDollar(viewModel.gameConfig)
-        )
-        Column(
-            modifier = Modifier
-                .weight(0.33f)
-            //.border(2.dp, color = Color.Yellow),
-        ) {
-            Row(
-                modifier = Modifier
-                    .weight(1f),
-                    //.border(2.dp, color = Color.Magenta)
-                    //.padding(4.dp),
-                verticalAlignment = Alignment.Bottom,
-                //verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
+        activePlayer?.let {
+            if (activePlayer.key == viewModel.heroSeat) {
+                val minBet = viewModel.calculateMinRaise()
+                    .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+                val maxBet = activePlayer.value.currentStack.plus(activePlayer.value.currentBet)
+                    .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+                val allowedToCheck = viewModel.allowedToCheck(activePlayer.key)
+                val allowedToCRaise = viewModel.allowedToRaise(activePlayer.key)
+                val betSliderPosition = remember { mutableStateOf(minBet) }
+                ActionButton(
+                    modifier = Modifier.weight(0.22f),
+                    onClick = { viewModel.fold(activePlayer.key) },
+                    prefixText = "FOLD",
+                )
+                val (callText, callAmount) = if (allowedToCheck) "CHECK" to null else "CALL" to currentBet?.minOf(
+                    activePlayer.value.currentStack
+                )
+                ActionButton(
+                    modifier = Modifier.weight(0.22f),
+                    onClick = {
+                        if (allowedToCheck) viewModel.check(activePlayer.key) else viewModel.call(activePlayer.key)
+                    },
+                    prefixText = callText,
+                    amount = callAmount?.toDollar(viewModel.gameConfig)
+                )
+                ActionButton(
+                    modifier = Modifier.weight(0.22f),
+                    onClick = {
+                        if (allowedToCRaise) {
+                            viewModel.raise(activePlayer.key, betSliderPosition.value)
+                        } else {
+                            viewModel.bet(activePlayer.key, betSliderPosition.value)
+                        }
+                    },
+                    prefixText = if (allowedToCRaise) "RAISE" else "BET",
+                    amount = betSliderPosition.value.toDollar(viewModel.gameConfig)
+                )
                 Column(
                     modifier = Modifier
-                        .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculateMinRaise()
-                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
-                        .background(color = BUTTON_COLOR)
-                        .border(1.dp, color = Color.Black),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .weight(0.33f)
+                    //.border(2.dp, color = Color.Yellow),
                 ) {
-                    AutoSizeText(text = "MIN", maxFontSize = 16.sp, minFontSize = 5.sp)
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.333)
-                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
-                        .background(color = BUTTON_COLOR)
-                        .border(1.dp, color = Color.Black),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AutoSizeText(text = "33%", maxFontSize = 16.sp, minFontSize = 5.sp)
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.5)
-                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
-                        .background(color = BUTTON_COLOR)
-                        .border(1.dp, color = Color.Black),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AutoSizeText(text = "50%", maxFontSize = 16.sp, minFontSize = 5.sp)
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(0.75)
-                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
-                        .background(color = BUTTON_COLOR)
-                        .border(1.dp, color = Color.Black),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AutoSizeText(text = "75%", maxFontSize = 16.sp, minFontSize = 5.sp)
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(onClick = { betSliderPosition.value = viewModel.calculatePotRaise(1.0)
-                            .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet)) })
-                        .background(color = BUTTON_COLOR)
-                        .border(1.dp, color = Color.Black),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AutoSizeText(text = "POT", maxFontSize = 16.sp, minFontSize = 5.sp)
+                    Row(
+                        modifier = Modifier
+                            .weight(1f),
+                        //.border(2.dp, color = Color.Magenta)
+                        //.padding(4.dp),
+                        verticalAlignment = Alignment.Bottom,
+                        //verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClick = {
+                                    betSliderPosition.value = viewModel.calculateMinRaise()
+                                        .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+                                })
+                                .background(color = BUTTON_COLOR)
+                                .border(1.dp, color = Color.Black),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AutoSizeText(text = "MIN", maxFontSize = 16.sp, minFontSize = 5.sp)
+                        }
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClick = {
+                                    betSliderPosition.value = viewModel.calculatePotRaise(0.333)
+                                        .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+                                })
+                                .background(color = BUTTON_COLOR)
+                                .border(1.dp, color = Color.Black),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AutoSizeText(text = "33%", maxFontSize = 16.sp, minFontSize = 5.sp)
+                        }
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClick = {
+                                    betSliderPosition.value = viewModel.calculatePotRaise(0.5)
+                                        .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+                                })
+                                .background(color = BUTTON_COLOR)
+                                .border(1.dp, color = Color.Black),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AutoSizeText(text = "50%", maxFontSize = 16.sp, minFontSize = 5.sp)
+                        }
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClick = {
+                                    betSliderPosition.value = viewModel.calculatePotRaise(0.75)
+                                        .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+                                })
+                                .background(color = BUTTON_COLOR)
+                                .border(1.dp, color = Color.Black),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AutoSizeText(text = "75%", maxFontSize = 16.sp, minFontSize = 5.sp)
+                        }
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClick = {
+                                    betSliderPosition.value = viewModel.calculatePotRaise(1.0)
+                                        .minOf(activePlayer.value.currentStack.plus(activePlayer.value.currentBet))
+                                })
+                                .background(color = BUTTON_COLOR)
+                                .border(1.dp, color = Color.Black),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AutoSizeText(text = "POT", maxFontSize = 16.sp, minFontSize = 5.sp)
+                        }
+                    }
+                    Slider(
+                        modifier = Modifier.weight(1.2f),
+                        //.border(2.dp, color = Color.Green),
+                        value = betSliderPosition.value.amount.toFloat(),
+                        onValueChange = { betSliderPosition.value = it.bigBlind().round() },
+                        valueRange = minBet.amount.toFloat()..maxBet.amount.toFloat(),
+                        colors = SliderDefaults.colors(thumbColor = BUTTON_COLOR, activeTrackColor = BUTTON_COLOR)
+                    )
                 }
             }
-            Slider(
-                modifier = Modifier.weight(1.2f),
-                //.border(2.dp, color = Color.Green),
-                value = betSliderPosition.value.amount.toFloat(),
-                onValueChange = { betSliderPosition.value =  it.bigBlind().round() },
-                valueRange = minBet.amount.toFloat()..maxBet.amount.toFloat(),
-                colors = SliderDefaults.colors(thumbColor = BUTTON_COLOR, activeTrackColor = BUTTON_COLOR)
-            )
         }
     }
 }
