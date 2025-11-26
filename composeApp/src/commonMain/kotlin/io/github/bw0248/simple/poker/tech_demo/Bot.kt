@@ -5,6 +5,11 @@ import io.github.bw0248.spe.game.PlayerCommand
 import io.github.bw0248.spe.game.PlayerFoldedCommand
 import io.github.bw0248.spe.player.PlayerSeat
 import io.github.bw0248.spe.player.PlayerStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 interface Bot {
     fun gameViewUpdateCallback(): (view: GameView) -> Unit
@@ -14,6 +19,7 @@ class SimpleBot(
     val playerSeat: PlayerSeat,
     val sendActionCommandCallback: (command: PlayerCommand) -> Unit
 ) : Bot {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     override fun gameViewUpdateCallback(): (view: GameView) -> Unit {
         return ::receiveGameViewUpdates
     }
@@ -29,7 +35,9 @@ class SimpleBot(
     fun sendActionCommand() {
         // @TODO: should be inside coroutine to prevent UI locking
         Logger.info("SimpleBot", "Sending action command")
-        Thread.sleep(1_000)
-        sendActionCommandCallback.invoke(PlayerFoldedCommand(playerSeat))
+        scope.launch {
+            delay(5_000)
+            sendActionCommandCallback.invoke(PlayerFoldedCommand(playerSeat))
+        }
     }
 }

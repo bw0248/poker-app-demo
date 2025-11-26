@@ -69,7 +69,7 @@ class PokerGameViewModel() : ViewModel() {
            //.updatedGame
            //.processCommand(JoinCommand(100.bigBlind(), playerSeat = PlayerSeat.FIVE))
            //.updatedGame
-        updateUiState(game.view())
+        updateUiState(game.view(), true)
     }
 
     fun sendPlayerCommand(event: PlayerCommand) {
@@ -143,21 +143,23 @@ class PokerGameViewModel() : ViewModel() {
             totalDelay += delay
             Logger.info("PokerGameViewModel", "Scheduling ${it.value.gameStatus} game state with delay of ${totalDelay}")
             scheduler.schedule(
-                { updateUiState(it.value) },
+                { updateUiState(it.value, false) },
                 totalDelay,
                 TimeUnit.MILLISECONDS
             )
         }
         scheduler.schedule(
-            { updateUiState(commandResult.updatedGame.view()) },
+            { updateUiState(commandResult.updatedGame.view(), true) },
             totalDelay + transitionDelayMillis,
             TimeUnit.MILLISECONDS
         )
     }
 
-    private fun updateUiState(gameView: GameView) {
+    private fun updateUiState(gameView: GameView, notifyConsumers: Boolean) {
         _uiState.update { PokerGameState.fromGameView(gameView) }
-        bot.receiveGameViewUpdates(gameView)
+        if (notifyConsumers) {
+            bot.receiveGameViewUpdates(gameView)
+        }
     }
 }
 
